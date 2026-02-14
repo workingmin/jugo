@@ -1,0 +1,114 @@
+/* Sidebar Container */
+.sidebar-container {
+  height: 100vh;
+  background: #FFFFFF;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Logo and Slogan Section */
+.sidebar-header {
+  padding: 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.sidebar-header .logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1E40AF;
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.sidebar-header .slogan {
+  font-size: 12px;
+  color: #9CA3AF;
+  letter-spacing: 1px;
+}
+
+/* Navigation Menu */
+.sidebar-menu {
+  flex: 1;
+  border-right: none;
+  padding: 16px 0;
+}
+
+.sidebar-menu .ant-menu-item {
+  height: 48px;
+  line-height: 48px;
+  margin: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.sidebar-menu .ant-menu-item-selected {
+  background-color: #EFF6FF !important;
+  color: #1E40AF !important;
+  font-weight: 500;
+}
+
+.sidebar-menu .ant-menu-item:hover {
+  background-color: #F3F4F6;
+}
+
+.sidebar-menu .ant-menu-item-icon {
+  font-size: 16px;
+}
+
+.sidebar-menu .ant-menu-item-divider {
+  margin: 12px 20px;
+  background-color: #E5E7EB;
+}
+
+/* Scrollbar styling */
+.sidebar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+  .sidebar-container {
+    width: 200px;
+  }
+
+  .sidebar-header .logo {
+    font-size: 24px;
+  }
+
+  .sidebar-menu .ant-menu-item {
+    height: 44px;
+    line-height: 44px;
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar-container {
+    position: fixed;
+    left: -240px;
+    top: 0;
+    width: 240px;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar-container.mobile-open {
+    left: 0;
+  }
+}

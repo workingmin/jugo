@@ -1,25 +1,31 @@
-import { Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
-import Footer from './components/Footer'
-import Home from './pages/Home'
-import Create from './pages/Create'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import MainLayout from './components/MainLayout'
 import Works from './pages/Works'
-import Materials from './pages/Materials'
+import NovelEditor from './pages/NovelEditor'
+import ScreenplayEditor from './pages/ScreenplayEditor'
+import Tutorial from './pages/Tutorial'
 import Profile from './pages/Profile'
+import About from './pages/About'
 
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/create" element={<Create />} />
-        <Route path="/works" element={<Works />} />
-        <Route path="/materials" element={<Materials />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        {/* Default route redirects to Works Management page */}
+        <Route index element={<Navigate to="/works" replace />} />
+
+        {/* Main pages */}
+        <Route path="works" element={<Works />} />
+        <Route path="editor/novel" element={<NovelEditor />} />
+        <Route path="editor/screenplay" element={<ScreenplayEditor />} />
+        <Route path="tutorial" element={<Tutorial />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="about" element={<About />} />
+
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/works" replace />} />
+      </Route>
+    </Routes>
   )
 }
 
