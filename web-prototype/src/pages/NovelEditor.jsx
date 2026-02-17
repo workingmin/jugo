@@ -47,11 +47,13 @@ function NovelEditor() {
 
   // Editor state
   const [title, setTitle] = useState('都市修仙传');
+  const [topic, setTopic] = useState('一个普通程序员意外获得修仙系统，在都市中开启修仙之路');
+  const [genre, setGenre] = useState('都市');
+  const [numChapters, setNumChapters] = useState(20);
+  const [wordPerChapter, setWordPerChapter] = useState(1500);
   const [content, setContent] = useState('<p>清晨的阳光透过窗帘洒进房间，李明睁开眼睛，发现眼前出现了一个半透明的界面...</p>');
   const [chapters, setChapters] = useState(mockChapters);
   const [currentChapterId, setCurrentChapterId] = useState('ch1');
-  const [selectedGenres, setSelectedGenres] = useState(['都市']);
-  const [selectedStyles, setSelectedStyles] = useState(['热血', '爽文']);
   const [wordCount, setWordCount] = useState(3200);
   const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
   const [showPreview, setShowPreview] = useState(true);
@@ -189,25 +191,43 @@ function NovelEditor() {
             <Divider style={{ margin: '12px 0' }} />
             <Space direction="vertical" style={{ width: '100%' }} size="small">
               <div>
-                <div className="label">题材标签</div>
-                <Select
-                  mode="multiple"
-                  value={selectedGenres}
-                  onChange={setSelectedGenres}
-                  style={{ width: '100%' }}
-                  options={GENRE_TAGS.NOVEL.map(g => ({ value: g, label: g }))}
-                  maxTagCount={3}
+                <div className="label">主题</div>
+                <TextArea
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="描述小说的核心主题，如'复仇与救赎'"
+                  rows={2}
                 />
               </div>
               <div>
-                <div className="label">风格标签</div>
+                <div className="label">类型</div>
                 <Select
-                  mode="multiple"
-                  value={selectedStyles}
-                  onChange={setSelectedStyles}
+                  value={genre}
+                  onChange={setGenre}
                   style={{ width: '100%' }}
-                  options={STYLE_TAGS.map(s => ({ value: s, label: s }))}
-                  maxTagCount={3}
+                  options={GENRE_TAGS.NOVEL.map(g => ({ value: g, label: g }))}
+                />
+              </div>
+              <div>
+                <div className="label">章节数</div>
+                <Input
+                  type="number"
+                  value={numChapters}
+                  onChange={(e) => setNumChapters(Number(e.target.value))}
+                  min={10}
+                  max={50}
+                  addonAfter="章"
+                />
+              </div>
+              <div>
+                <div className="label">单章字数</div>
+                <Input
+                  type="number"
+                  value={wordPerChapter}
+                  onChange={(e) => setWordPerChapter(Number(e.target.value))}
+                  min={800}
+                  max={3000}
+                  addonAfter="字"
                 />
               </div>
               <div>
@@ -257,9 +277,6 @@ function NovelEditor() {
               </Button>
               <Button block icon={<RobotOutlined />}>
                 角色管理 ({characters.length})
-              </Button>
-              <Button block icon={<BulbOutlined />}>
-                灵感库
               </Button>
             </Space>
           </div>
