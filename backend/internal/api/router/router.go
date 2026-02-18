@@ -37,6 +37,7 @@ func Setup(logger *zap.Logger, db *gorm.DB, cfg *config.Config) *gin.Engine {
 	workService := service.NewWorkService(workRepo, chapterRepo)
 	chapterService := service.NewChapterService(workRepo, chapterRepo)
 	characterService := service.NewCharacterService(workRepo, characterRepo)
+	exportService := service.NewExportService(workRepo, chapterRepo, characterRepo)
 	saveService := service.NewSaveService(workRepo, chapterRepo)
 	aiService := service.NewAIService(aiTaskRepo, workRepo, cfg)
 
@@ -46,6 +47,7 @@ func Setup(logger *zap.Logger, db *gorm.DB, cfg *config.Config) *gin.Engine {
 	workHandler := handler.NewWorkHandler(workService)
 	chapterHandler := handler.NewChapterHandler(chapterService)
 	characterHandler := handler.NewCharacterHandler(characterService)
+	exportHandler := handler.NewExportHandler(exportService)
 	saveHandler := handler.NewSaveHandler(saveService)
 	aiHandler := handler.NewAIHandler(aiService)
 
@@ -92,6 +94,9 @@ func Setup(logger *zap.Logger, db *gorm.DB, cfg *config.Config) *gin.Engine {
 			// 角色相关路由
 			works.POST("/:workId/characters", characterHandler.Create)
 			works.GET("/:workId/characters", characterHandler.List)
+
+			// 导出相关路由
+			works.POST("/:id/export", exportHandler.Export)
 
 			// 保存相关路由
 			works.POST("/:workId/autosave", saveHandler.AutoSave)
