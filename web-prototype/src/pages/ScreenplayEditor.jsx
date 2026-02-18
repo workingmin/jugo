@@ -28,6 +28,7 @@ import {
   WarningOutlined,
   VideoCameraOutlined,
   CommentOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { GENRE_TAGS, AI_FUNCTIONS, AUTO_SAVE_INTERVAL } from '../constants';
 import './ScreenplayEditor.css';
@@ -63,7 +64,6 @@ function ScreenplayEditor() {
   const [scenes, setScenes] = useState(mockScenes);
   const [currentSceneId, setCurrentSceneId] = useState('sc1');
   const [currentDuration, setCurrentDuration] = useState(10);
-  const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
   const [showPreview, setShowPreview] = useState(true);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiProgress, setAiProgress] = useState(0);
@@ -89,10 +89,18 @@ function ScreenplayEditor() {
   }, [content]);
 
   const handleAutoSave = useCallback(() => {
-    setAutoSaveStatus('saving');
+    // 模拟保存过程
     setTimeout(() => {
-      setAutoSaveStatus('saved');
       console.log('Auto-saved:', { title, content });
+
+      // 显示轻量的自动保存提示，5秒后自动消失
+      message.success({
+        content: '已自动保存',
+        duration: 5,
+        style: {
+          marginTop: '60px', // 避免遮挡工具栏
+        },
+      });
     }, 500);
   }, [title, content]);
 
@@ -158,6 +166,59 @@ function ScreenplayEditor() {
       ),
       onOk: () => {
         message.success('场景创建成功！');
+      },
+    });
+  };
+
+  const handleConvertToNovel = () => {
+    Modal.confirm({
+      title: '转换为小说',
+      icon: <ThunderboltOutlined style={{ color: '#7C3AED' }} />,
+      content: (
+        <div>
+          <p>将剧本内容转换为小说格式，包括：</p>
+          <ul style={{ paddingLeft: '20px', marginTop: '8px' }}>
+            <li>场景描述扩展</li>
+            <li>对话转为叙事</li>
+            <li>动作转为描写</li>
+            <li>增加心理活动</li>
+          </ul>
+          <p style={{ marginTop: '12px', color: '#6B7280', fontSize: '13px' }}>
+            预计耗时：约 2-3 分钟（根据内容长度）
+          </p>
+          <p style={{ marginTop: '8px', color: '#6B7280', fontSize: '13px' }}>
+            原剧本内容将保留，转换后将创建新的小说作品
+          </p>
+        </div>
+      ),
+      okText: '开始转换',
+      cancelText: '取消',
+      okButtonProps: {
+        style: { background: '#7C3AED', borderColor: '#7C3AED' }
+      },
+      onOk: () => {
+        setAiGenerating(true);
+        setAiProgress(0);
+        message.loading('正在转换为小说...', 0);
+
+        const interval = setInterval(() => {
+          setAiProgress(prev => {
+            if (prev >= 100) {
+              clearInterval(interval);
+              setAiGenerating(false);
+              message.destroy();
+              message.success('转换成功！正在跳转到小说编辑器...', 2);
+
+              // 跳转到小说编辑器
+              setTimeout(() => {
+                navigate(`/editor/novel?id=${workId || 'new'}&from=screenplay`);
+              }, 2000);
+
+              return 100;
+            }
+            return prev + 5;
+          });
+        }, 100);
       },
     });
   };
@@ -350,15 +411,22 @@ function ScreenplayEditor() {
           </div>
           <div className="toolbar-right">
             <Space>
-              <span className="auto-save-status">
-                {autoSaveStatus === 'saving' ? '保存中...' : '已保存'}
-              </span>
               <Button icon={<SaveOutlined />} onClick={handleSave}>
                 保存
               </Button>
               <Button icon={<ExportOutlined />} onClick={handleExport}>
                 导出
               </Button>
+              <Tooltip title="使用 AI 将剧本转换为小说格式">
+                <Button
+                  type="primary"
+                  icon={<ThunderboltOutlined />}
+                  onClick={handleConvertToNovel}
+                  style={{ background: '#7C3AED', borderColor: '#7C3AED' }}
+                >
+                  转为小说
+                </Button>
+              </Tooltip>
               <Button
                 icon={<EyeOutlined />}
                 onClick={() => setShowPreview(!showPreview)}

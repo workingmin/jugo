@@ -1,0 +1,69 @@
+# JUGO Backend Configuration - Development Environment
+# 开发环境配置
+
+server:
+  port: 8080
+  mode: debug  # debug, release, test
+  read_timeout: 60
+  write_timeout: 60
+
+database:
+  host: localhost
+  port: 3306
+  username: jugo
+  password: jugo123456
+  database: jugo_dev
+  charset: utf8mb4
+  parse_time: true
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600  # seconds
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 10
+  min_idle_conns: 5
+
+jwt:
+  secret: "jugo-secret-key-change-in-production"
+  expire_hours: 24
+  refresh_expire_hours: 168  # 7 days
+
+rabbitmq:
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  vhost: /
+
+minio:
+  endpoint: localhost:9000
+  access_key: minioadmin
+  secret_key: minioadmin
+  bucket: jugo
+  use_ssl: false
+
+ai:
+  claude:
+    api_key: "sk-ant-placeholder"
+    model: "claude-sonnet-4-5-20250929"
+    max_tokens: 4096
+    timeout: 120
+  deepseek:
+    api_key: "sk-placeholder"
+    model: "deepseek-chat"
+    max_tokens: 4096
+    timeout: 120
+
+log:
+  level: debug  # debug, info, warn, error
+  format: json  # json, text
+  output: stdout  # stdout, file
+  file_path: logs/app.log
+  max_size: 100  # MB
+  max_backups: 3
+  max_age: 7  # days
+  compress: true

@@ -1,4 +1,4 @@
-import { Menu } from 'antd';
+import { Menu, Modal } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BookOutlined,
@@ -7,6 +7,7 @@ import {
   QuestionCircleOutlined,
   UserOutlined,
   InfoCircleOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import { designTokens } from '../config/theme';
 import './Sidebar.css';
@@ -14,6 +15,21 @@ import './Sidebar.css';
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 退出登录处理
+  const handleLogout = () => {
+    Modal.confirm({
+      title: '确认退出',
+      content: '确定要退出登录吗？',
+      okText: '确定',
+      cancelText: '取消',
+      onOk: () => {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        navigate('/login');
+      },
+    });
+  };
 
   // Menu items based on design document
   const menuItems = [
@@ -60,6 +76,17 @@ const Sidebar = () => {
       icon: <InfoCircleOutlined />,
       label: '关于我们',
       onClick: () => navigate('/about'),
+    },
+    {
+      type: 'divider',
+      key: 'divider3',
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: handleLogout,
+      danger: true,
     },
   ];
 

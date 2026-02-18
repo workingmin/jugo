@@ -1,0 +1,17 @@
+/* 使用教程页样式 */
+
+.container {
+  padding: 40px;
+}
+
+.container h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.container p {
+  font-size: 16px;
+  color: #666;
+}
