@@ -1,0 +1,76 @@
+.center-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .editor-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+
+    .editor-status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #8c8c8c;
+
+      .save-time {
+        color: #52c41a;
+      }
+
+      .unsaved-indicator {
+        color: #ff4d4f;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .editor-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .quill {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      .ql-container {
+        flex: 1;
+        overflow-y: auto;
+        font-size: 16px;
+        line-height: 1.8;
+
+        .ql-editor {
+          padding: 24px;
+          min-height: 100%;
+
+          &.ql-blank::before {
+            color: #bfbfbf;
+            font-style: normal;
+          }
+        }
+      }
+
+      .ql-toolbar {
+        border-left: none;
+        border-right: none;
+        border-top: none;
+      }
+    }
+
+    .editor-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #8c8c8c;
+      font-size: 14px;
+    }
+  }
+}

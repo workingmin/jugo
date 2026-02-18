@@ -1,0 +1,48 @@
+.issue-detection-card {
+  .ant-card-body {
+    padding: 12px;
+  }
+
+  .issue-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+
+      .issue-type {
+        font-weight: 500;
+        font-size: 14px;
+      }
+    }
+
+    .issue-message {
+      font-size: 13px;
+      color: #595959;
+      margin-bottom: 4px;
+    }
+
+    .issue-suggestion {
+      font-size: 12px;
+      color: #8c8c8c;
+      font-style: italic;
+    }
+  }
+}
+
+.issue-detection-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}

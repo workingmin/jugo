@@ -1,0 +1,37 @@
+.preview-card {
+  .ant-card-body {
+    padding: 12px;
+  }
+
+  .preview-content {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #262626;
+
+    p {
+      margin-bottom: 12px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    h1, h2, h3 {
+      margin-top: 16px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    ul, ol {
+      padding-left: 24px;
+      margin-bottom: 12px;
+    }
+  }
+}
+
+.preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}

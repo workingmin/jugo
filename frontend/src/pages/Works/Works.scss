@@ -1,0 +1,32 @@
+.works-page {
+  .works-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .works-list {
+    min-height: 400px;
+  }
+
+  .works-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    padding: 24px 0;
+  }
+
+  @media (max-width: 768px) {
+    .works-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      > * {
+        width: 100%;
+      }
+    }
+  }
+}

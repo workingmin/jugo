@@ -1,0 +1,44 @@
+.progress-panel {
+  .progress-card {
+    .ant-card-body {
+      padding: 12px;
+    }
+
+    .progress-section {
+      margin-bottom: 24px;
+
+      .progress-label {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #262626;
+      }
+
+      .progress-stats {
+        text-align: center;
+        font-size: 12px;
+        color: #8c8c8c;
+        margin-top: 8px;
+      }
+    }
+
+    .stats-row {
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .ant-statistic {
+        .ant-statistic-title {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+
+        .ant-statistic-content {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}

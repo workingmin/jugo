@@ -1,0 +1,75 @@
+.scene-list {
+  .scene-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+
+  .ant-list {
+    .scene-item {
+      padding: 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+
+      &.active {
+        background: #e6f7ff;
+        border-color: #1e40af;
+
+        .scene-number {
+          color: #1e40af;
+          font-weight: 600;
+        }
+      }
+
+      .scene-content {
+        width: 100%;
+
+        .scene-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .scene-number {
+            font-weight: 500;
+            font-size: 13px;
+          }
+        }
+
+        .scene-location {
+          font-size: 14px;
+          margin-bottom: 8px;
+          color: #262626;
+
+          .anticon {
+            margin-right: 4px;
+            color: #8c8c8c;
+          }
+        }
+
+        .scene-meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 12px;
+
+          .scene-duration {
+            color: #8c8c8c;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+.screenplay-left-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .left-panel-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .ant-tabs-content-holder {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .ant-tabs-nav {
+      margin-bottom: 0;
+      padding: 0 16px;
+    }
+
+    .ant-tabs-tabpane {
+      padding: 16px;
+    }
+  }
+}
