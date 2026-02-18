@@ -62,10 +62,10 @@ lint:
 	@echo "Running linter..."
 	@golangci-lint run
 
-# 数据库迁移（待实现）
+# 数据库迁移
 migrate-up:
 	@echo "Running migrations..."
-	@echo "TODO: Implement migration"
+	@bash scripts/migrate.sh
 
 migrate-down:
 	@echo "Rolling back migrations..."

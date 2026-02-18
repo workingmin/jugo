@@ -47,7 +47,8 @@ func main() {
 	zapLogger.Info("Redis connected successfully")
 
 	// 设置路由
-	r := router.Setup(zapLogger)
+	db := pkg.GetDB()
+	r := router.Setup(zapLogger, db, cfg)
 
 	// 创建HTTP服务器
 	srv := &http.Server{

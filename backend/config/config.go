@@ -21,10 +21,10 @@ type Config struct {
 
 // ServerConfig 服务器配置
 type ServerConfig struct {
-	Port         int `mapstructure:"port"`
+	Port         int    `mapstructure:"port"`
 	Mode         string `mapstructure:"mode"`
-	ReadTimeout  int `mapstructure:"read_timeout"`
-	WriteTimeout int `mapstructure:"write_timeout"`
+	ReadTimeout  int    `mapstructure:"read_timeout"`
+	WriteTimeout int    `mapstructure:"write_timeout"`
 }
 
 // DatabaseConfig 数据库配置
