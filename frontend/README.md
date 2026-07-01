@@ -1,5 +1,7 @@
 # JUGO Frontend
 
+> 状态：`v0.1.0-legacy` 旧前端实现。当前目录只作为归档参考和复用评估来源，不再承接 `v0.2.0-planning` 新需求。新版本 Web 原型和页面 demo 请进入 `prototype/v0.2.0-planning/`。
+
 JUGO AI小说剧本创作平台 - 前端工程
 
 ## 技术栈

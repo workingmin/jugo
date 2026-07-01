@@ -21,6 +21,8 @@
 docs/refactor/new-project/v0.2.0-planning/
 ├── README.md
 ├── requirements-start.md
+├── web-prototype-demo-implementation-plan.md  # Web 原型 demo 实施计划
+├── web-prototype-theme-design.md              # Web 原型日间 / 夜间双主题设计
 ├── product-scope.md              # 待创建：产品范围和非目标
 ├── user-scenarios.md             # 待创建：用户、场景、流程
 ├── domain-model.md               # 待创建：核心业务对象和关系
@@ -28,6 +30,27 @@ docs/refactor/new-project/v0.2.0-planning/
 ├── api-contract-draft.md         # 待创建：新 API 契约草案
 └── migration-from-legacy.md      # 待创建：旧代码复用和废弃策略
 ```
+
+## Web 原型工作区
+
+`v0.2.0-planning` 的需求评审 Web 原型统一放在：
+
+```text
+prototype/v0.2.0-planning/
+```
+
+该目录用于承载新版本页面 demo，不复用旧 `web-prototype/` 的页面结构。当前建议优先实现：
+
+1. 项目管理首页。
+2. 世界观知识库。
+3. 分支树视图。
+4. 矩阵时序视图。
+5. 节拍板视图。
+6. 全局校验报告。
+
+实施计划见 [web-prototype-demo-implementation-plan.md](web-prototype-demo-implementation-plan.md)。
+
+全局主题设计见 [web-prototype-theme-design.md](web-prototype-theme-design.md)。
 
 ## 立项阶段产出顺序
 

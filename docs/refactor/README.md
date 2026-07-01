@@ -49,12 +49,13 @@ docs/refactor/
 
 ## 当前代码域
 
-| 代码域 | 当前用途 | 入口文档 |
-| --- | --- | --- |
-| `backend/` | Go + Gin 后端服务 | [current/backend-code-map.md](current/backend-code-map.md) |
-| `frontend/` | React + TypeScript 前端应用 | [current/frontend-code-map.md](current/frontend-code-map.md) |
-| `web-prototype/` | 前端交互原型和旧原型资料 | [current/web-prototype-code-map.md](current/web-prototype-code-map.md) |
-| `thirdparty/` | 第三方参考项目目录，目前只有空目录占位 | [current/project-file-index.md](current/project-file-index.md) |
+| 代码域 | 当前归属 | 当前用途 | 入口文档 |
+| --- | --- | --- | --- |
+| `backend/` | `v0.1.0-legacy` | Go + Gin 旧后端服务，只读参考 | [current/backend-code-map.md](current/backend-code-map.md) |
+| `frontend/` | `v0.1.0-legacy` | React + TypeScript 旧前端应用，只读参考 | [current/frontend-code-map.md](current/frontend-code-map.md) |
+| `web-prototype/` | `v0.1.0-legacy` | 旧前端交互原型和旧 React/Vite 原型，只读参考 | [current/web-prototype-code-map.md](current/web-prototype-code-map.md) |
+| `thirdparty/` | `v0.1.0-legacy` | 第三方参考项目目录，目前作为占位 | [current/project-file-index.md](current/project-file-index.md) |
+| `prototype/v0.2.0-planning/` | `v0.2.0-planning` | 新版本需求评审 Web 原型 demo 工作区 | [../../prototype/v0.2.0-planning/README.md](../../prototype/v0.2.0-planning/README.md) |
 
 ## 维护原则
 

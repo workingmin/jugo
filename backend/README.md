@@ -1,5 +1,7 @@
 # JUGO Backend
 
+> 状态：`v0.1.0-legacy` 旧后端实现。当前目录只作为归档参考和复用评估来源，不再承接 `v0.2.0-planning` 新需求。新版本是否复用本目录中的模块，需要先在 `docs/refactor/new-project/v0.2.0-planning/` 中重新确认领域模型、API 契约和架构边界。
+
 JUGO（AI小说剧本创作平台）后端服务
 
 ## 技术栈
