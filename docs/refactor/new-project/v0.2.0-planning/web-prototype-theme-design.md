@@ -27,30 +27,30 @@
 
 ### 视觉气质
 
-干净、理性、清晰。背景使用接近白色的中性灰，主操作使用冷静青蓝色，状态色保持克制，避免旧版单一墨蓝观感。
+干净、理性、清晰。背景使用带轻微纸张感的冷暖中性底色，主操作使用偏文学编辑器气质的酒红 / 批注红，辅助入口使用墨蓝灰，避免旧版青绿工具感。
 
 ### 核心色板
 
 | Token | 色值 | 用途 |
 | --- | --- | --- |
-| `--color-bg-app` | `#F6F7F9` | 应用整体背景 |
+| `--color-bg-app` | `#F7F5F7` | 应用整体背景 |
 | `--color-bg-surface` | `#FFFFFF` | 顶栏、侧栏、详情面板、弹窗 |
-| `--color-bg-subtle` | `#EEF1F4` | 工具栏、表头、轻量分区背景 |
-| `--color-bg-canvas` | `#F8FAFB` | 矩阵时序、分支树、节拍板画布底色 |
-| `--color-text-primary` | `#172026` | 主要文字 |
-| `--color-text-secondary` | `#52616B` | 次级文字、说明 |
-| `--color-text-muted` | `#7D8B95` | 弱提示、时间、辅助信息 |
-| `--color-border` | `#D7DEE5` | 常规边框 |
-| `--color-border-strong` | `#B6C2CC` | 面板分隔、选区边界 |
-| `--color-primary` | `#146C78` | 主按钮、当前视图、关键选中态 |
-| `--color-primary-hover` | `#0F5964` | 主按钮悬浮 |
-| `--color-primary-soft` | `#DDF1F3` | 选中背景、轻量主色标签 |
-| `--color-accent` | `#8B5CF6` | AI 工具、特殊入口、隐藏结局 |
-| `--color-accent-soft` | `#EEE8FF` | AI / 特殊入口轻背景 |
-| `--color-success` | `#1F8A5B` | 已解决、同步成功 |
-| `--color-warning` | `#B7791F` | 伏笔待回收、节奏风险 |
-| `--color-danger` | `#C2413A` | 冲突、删除、严重问题 |
-| `--color-info` | `#2F6FED` | 系统信息、定位提示 |
+| `--color-bg-subtle` | `#EEEAF0` | 工具栏、表头、轻量分区背景 |
+| `--color-bg-canvas` | `#FAF8FA` | 矩阵时序、分支树、节拍板画布底色 |
+| `--color-text-primary` | `#211B20` | 主要文字 |
+| `--color-text-secondary` | `#5F5660` | 次级文字、说明 |
+| `--color-text-muted` | `#887D86` | 弱提示、时间、辅助信息 |
+| `--color-border` | `#DCD4DC` | 常规边框 |
+| `--color-border-strong` | `#BFAFBB` | 面板分隔、选区边界 |
+| `--color-primary` | `#8F3F5F` | 主按钮、当前视图、关键选中态 |
+| `--color-primary-hover` | `#74314D` | 主按钮悬浮 |
+| `--color-primary-soft` | `#F4E6EC` | 选中背景、轻量主色标签 |
+| `--color-accent` | `#4F638D` | AI 工具、特殊入口、隐藏结局 |
+| `--color-accent-soft` | `#E7ECF5` | AI / 特殊入口轻背景 |
+| `--color-success` | `#2F7D68` | 已解决、同步成功 |
+| `--color-warning` | `#A86D32` | 伏笔待回收、节奏风险 |
+| `--color-danger` | `#B84A4A` | 冲突、删除、严重问题 |
+| `--color-info` | `#4F6FA6` | 系统信息、定位提示 |
 
 ## 主题 B：夜间创作深色模式
 
@@ -62,30 +62,30 @@
 
 ### 视觉气质
 
-沉稳、聚焦、不压抑。避免纯黑背景和大面积深蓝，使用炭黑、石墨灰和低饱和青绿作为主色，配合琥珀和紫色做状态区分。
+沉稳、聚焦、不压抑。避免纯黑背景和大面积深绿，使用夜稿纸黑、墨紫灰和柔和酒红作为主色，配合墨蓝灰区分 AI / 特殊入口。
 
 ### 核心色板
 
 | Token | 色值 | 用途 |
 | --- | --- | --- |
-| `--color-bg-app` | `#151719` | 应用整体背景 |
-| `--color-bg-surface` | `#202326` | 顶栏、侧栏、详情面板、弹窗 |
-| `--color-bg-subtle` | `#292D31` | 工具栏、表头、轻量分区背景 |
-| `--color-bg-canvas` | `#191C1F` | 矩阵时序、分支树、节拍板画布底色 |
-| `--color-text-primary` | `#E7ECEF` | 主要文字 |
-| `--color-text-secondary` | `#B4BEC6` | 次级文字、说明 |
-| `--color-text-muted` | `#87919A` | 弱提示、时间、辅助信息 |
-| `--color-border` | `#3A4046` | 常规边框 |
-| `--color-border-strong` | `#56606A` | 面板分隔、选区边界 |
-| `--color-primary` | `#4FB3BF` | 主按钮、当前视图、关键选中态 |
-| `--color-primary-hover` | `#74CDD6` | 主按钮悬浮 |
-| `--color-primary-soft` | `#17363B` | 选中背景、轻量主色标签 |
-| `--color-accent` | `#A78BFA` | AI 工具、特殊入口、隐藏结局 |
-| `--color-accent-soft` | `#30264A` | AI / 特殊入口轻背景 |
-| `--color-success` | `#48B882` | 已解决、同步成功 |
-| `--color-warning` | `#D6A84F` | 伏笔待回收、节奏风险 |
-| `--color-danger` | `#E06A61` | 冲突、删除、严重问题 |
-| `--color-info` | `#7FA8FF` | 系统信息、定位提示 |
+| `--color-bg-app` | `#171519` | 应用整体背景 |
+| `--color-bg-surface` | `#242027` | 顶栏、侧栏、详情面板、弹窗 |
+| `--color-bg-subtle` | `#2D2831` | 工具栏、表头、轻量分区背景 |
+| `--color-bg-canvas` | `#1C1920` | 矩阵时序、分支树、节拍板画布底色 |
+| `--color-text-primary` | `#ECE8EC` | 主要文字 |
+| `--color-text-secondary` | `#C5BAC4` | 次级文字、说明 |
+| `--color-text-muted` | `#978B96` | 弱提示、时间、辅助信息 |
+| `--color-border` | `#443B45` | 常规边框 |
+| `--color-border-strong` | `#665867` | 面板分隔、选区边界 |
+| `--color-primary` | `#D58AA6` | 主按钮、当前视图、关键选中态 |
+| `--color-primary-hover` | `#E7A4BB` | 主按钮悬浮 |
+| `--color-primary-soft` | `#3A2430` | 选中背景、轻量主色标签 |
+| `--color-accent` | `#91A4D8` | AI 工具、特殊入口、隐藏结局 |
+| `--color-accent-soft` | `#263049` | AI / 特殊入口轻背景 |
+| `--color-success` | `#6BC0A5` | 已解决、同步成功 |
+| `--color-warning` | `#D2A15E` | 伏笔待回收、节奏风险 |
+| `--color-danger` | `#E07373` | 冲突、删除、严重问题 |
+| `--color-info` | `#93A9E8` | 系统信息、定位提示 |
 
 ## 共享语义 Token
 
@@ -137,19 +137,19 @@
 
 | 轨道 | 浅色 | 深色 |
 | --- | --- | --- |
-| 主线 | `#146C78` | `#4FB3BF` |
-| 女主线 / 情感线 | `#C06C84` | `#F09AAD` |
-| 反派线 | `#8B5CF6` | `#A78BFA` |
-| 势力线 | `#2F6FED` | `#7FA8FF` |
-| 伏笔线 | `#B7791F` | `#D6A84F` |
+| 主线 | `#8F3F5F` | `#D58AA6` |
+| 女主线 / 情感线 | `#C86D88` | `#F0A1B8` |
+| 反派线 | `#4F638D` | `#91A4D8` |
+| 势力线 | `#7B5EA7` | `#B7A0DC` |
+| 伏笔线 | `#A86D32` | `#D2A15E` |
 
 ### 分支结局颜色
 
 | 类型 | 浅色 | 深色 |
 | --- | --- | --- |
-| 好结局 | `#1F8A5B` | `#48B882` |
-| 坏结局 | `#C2413A` | `#E06A61` |
-| 隐藏结局 | `#8B5CF6` | `#A78BFA` |
+| 好结局 | `#2F7D68` | `#6BC0A5` |
+| 坏结局 | `#B84A4A` | `#E07373` |
+| 隐藏结局 | `#7B5EA7` | `#B7A0DC` |
 | 中立结局 | `#64748B` | `#A3ADB8` |
 
 ### 校验等级
@@ -209,45 +209,45 @@
 ```css
 :root,
 [data-theme="light"] {
-  --color-bg-app: #F6F7F9;
+  --color-bg-app: #F7F5F7;
   --color-bg-surface: #FFFFFF;
-  --color-bg-subtle: #EEF1F4;
-  --color-bg-canvas: #F8FAFB;
-  --color-text-primary: #172026;
-  --color-text-secondary: #52616B;
-  --color-text-muted: #7D8B95;
-  --color-border: #D7DEE5;
-  --color-border-strong: #B6C2CC;
-  --color-primary: #146C78;
-  --color-primary-hover: #0F5964;
-  --color-primary-soft: #DDF1F3;
-  --color-accent: #8B5CF6;
-  --color-accent-soft: #EEE8FF;
-  --color-success: #1F8A5B;
-  --color-warning: #B7791F;
-  --color-danger: #C2413A;
-  --color-info: #2F6FED;
+  --color-bg-subtle: #EEEAF0;
+  --color-bg-canvas: #FAF8FA;
+  --color-text-primary: #211B20;
+  --color-text-secondary: #5F5660;
+  --color-text-muted: #887D86;
+  --color-border: #DCD4DC;
+  --color-border-strong: #BFAFBB;
+  --color-primary: #8F3F5F;
+  --color-primary-hover: #74314D;
+  --color-primary-soft: #F4E6EC;
+  --color-accent: #4F638D;
+  --color-accent-soft: #E7ECF5;
+  --color-success: #2F7D68;
+  --color-warning: #A86D32;
+  --color-danger: #B84A4A;
+  --color-info: #4F6FA6;
 }
 
 [data-theme="dark"] {
-  --color-bg-app: #151719;
-  --color-bg-surface: #202326;
-  --color-bg-subtle: #292D31;
-  --color-bg-canvas: #191C1F;
-  --color-text-primary: #E7ECEF;
-  --color-text-secondary: #B4BEC6;
-  --color-text-muted: #87919A;
-  --color-border: #3A4046;
-  --color-border-strong: #56606A;
-  --color-primary: #4FB3BF;
-  --color-primary-hover: #74CDD6;
-  --color-primary-soft: #17363B;
-  --color-accent: #A78BFA;
-  --color-accent-soft: #30264A;
-  --color-success: #48B882;
-  --color-warning: #D6A84F;
-  --color-danger: #E06A61;
-  --color-info: #7FA8FF;
+  --color-bg-app: #171519;
+  --color-bg-surface: #242027;
+  --color-bg-subtle: #2D2831;
+  --color-bg-canvas: #1C1920;
+  --color-text-primary: #ECE8EC;
+  --color-text-secondary: #C5BAC4;
+  --color-text-muted: #978B96;
+  --color-border: #443B45;
+  --color-border-strong: #665867;
+  --color-primary: #D58AA6;
+  --color-primary-hover: #E7A4BB;
+  --color-primary-soft: #3A2430;
+  --color-accent: #91A4D8;
+  --color-accent-soft: #263049;
+  --color-success: #6BC0A5;
+  --color-warning: #D2A15E;
+  --color-danger: #E07373;
+  --color-info: #93A9E8;
 }
 
 :root {

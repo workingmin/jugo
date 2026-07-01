@@ -44,3 +44,46 @@
 主题设计文档：[../../docs/refactor/new-project/v0.2.0-planning/web-prototype-theme-design.md](../../docs/refactor/new-project/v0.2.0-planning/web-prototype-theme-design.md)
 
 主题 token 初稿：[src/styles/theme.css](src/styles/theme.css)
+
+## 当前可运行页面
+
+项目管理首页已实现为静态页面：
+
+```text
+index.html
+```
+
+当前能力：
+
+- 日间专业浅色模式 / 夜间创作深色模式切换。
+- 有项目列表状态和空白账号引导状态。
+- 项目搜索、类型筛选、负责人筛选。
+- 新建项目模板选择弹窗。
+
+本阶段不接真实后端，按钮操作使用前端模拟反馈。
+
+## 当前部署
+
+开发环境访问地址：
+
+```text
+https://devh.lingxi.fyi/
+```
+
+静态部署目录：
+
+```text
+/data/web/jugo/v0.2.0-planning/
+```
+
+Nginx vhost：
+
+```text
+/usr/local/nginx/conf/vhost/devh.lingxi.fyi.conf
+```
+
+本次仅将站点根路径切到 JUGO v0.2 原型，保留了现有 `/api/`、`/openim/`、`/storage/` 和旧 demo 子路径代理 / alias。切换前备份文件：
+
+```text
+/usr/local/nginx/conf/vhost/devh.lingxi.fyi.conf.bak-jugo-v020-20260701
+```
