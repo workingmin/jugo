@@ -29,6 +29,32 @@
 4. 百科中人工补充字段与导图派生字段分开存储，避免下次同步被覆盖。
 5. 冲突、缺字段、重复实体等问题进入审核校验仓库。
 
+## 竞品 CreateAUniverse 功能树分析
+
+`competitor-static-html/CreateAUniverse-单世界思维导图功能树页面.html` 是一个导出的 HTML 片段。从页面结构看，它更像 React 组件渲染后的自研功能树，而不是直接基于成熟思维导图库实现：
+
+- 类名形态为 `_mindmapLayout_ax31j_450`、`_groupNode_ax31j_714`、`_moduleHeader_ax31j_937`，符合 CSS Modules 编译后的命名特征。
+- 图标使用内联 `lucide` SVG，例如 `lucide-globe`、`lucide-users`、`lucide-map`。
+- DOM 结构是中心 root node + 左右 side section + group branch + module branch + connector div。
+- 片段中未出现 React Flow、G6、X6、Mind Elixir、jsMind、markmap 的典型容器、脚本引用、canvas 节点或 nodes / edges 数据结构。
+
+因此，竞品这页应理解为「自研的世界构建功能树 / 脑图式导航组件」，不是完整的可自由编辑 mindmap canvas。它的价值主要在信息架构：把世界观拆成更专业的系统级目录。
+
+竞品一级系统：
+
+| 一级系统 | 二级模块 |
+| --- | --- |
+| 世界观总览 | 世界观设定 |
+| 地理系统 | 地理详情、地点管理、FMG地图编辑器 |
+| 人物系统 | 人物关系图、人物档案、复杂关系网络、能力技能 |
+| 历史系统 | 时间线、关键转折 |
+| 文化系统 | 宗教信仰、语言文字、艺术娱乐 |
+| 社会结构 | 政治体系、经济系统、外交关系 |
+| 创作管理 | 伏笔管理、灵感库 |
+| 工具与设置 | 姓名生成 |
+
+对比后判断：当前原设计中的「人物、势力、地点、世界规则、伏笔线索、道具 / 历史事件 / 术语」更像 AI 校验和百科数据模型的最小分类，适合 MVP，但作为专业世界观编辑页略显粗糙。后续应把导航层升级为「世界构建系统分类」，同时保留底层实体类型，避免只做表单仓库而缺少创作工作台的完整感。
+
 ## 可行性评估
 
 ### 产品可行性
@@ -60,15 +86,15 @@
 
 最低可行链路：
 
-```text
-思维导图节点
-  -> 保存
-  -> 节点归一化
-  -> 按节点类型生成百科条目
-  -> 生成关系索引
-  -> 生成校验任务
-  -> 更新百科仓库与审核校验仓库
-```
+<ol style="display:grid; gap:8px; margin:10px 0 0 20px;">
+<li>读取思维导图节点。</li>
+<li>点击项目顶栏「保存」。</li>
+<li>执行节点归一化，补齐稳定 ID、节点类型和父子关系。</li>
+<li>按节点类型生成或更新百科条目。</li>
+<li>根据父子关系和自定义连线生成关系索引。</li>
+<li>生成校验任务和待补全提示。</li>
+<li>更新百科仓库与审核校验仓库。</li>
+</ol>
 
 需要提前规避的风险：
 
@@ -79,31 +105,42 @@
 
 ## 页面布局建议
 
-世界观主内容区建议采用局部双栏，不影响项目编辑页顶部导航：
+世界观主内容区建议采用局部双栏，不影响项目编辑页顶部导航。页面布局用 HTML 结构表达如下，后续 demo 也应优先以可渲染 HTML / CSS 原型描述布局，不再用 ASCII 框图表达页面结构：
 
 <div style="border:1px solid #d0d7de; border-radius:10px; padding:12px; background:#fafbfc; font-family:system-ui, -apple-system, sans-serif;">
 <div style="border:1px solid #999; border-radius:8px; padding:10px 12px; margin-bottom:10px; background:#fff;">
 <strong>项目编辑页顶栏</strong><br>
-<span style="display:inline-block; margin-top:6px;">← 项目标题 · 世界观 / 矩阵时序或分支树 · 保存</span>
+<div style="display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; margin-top:8px;">
+<span>← 项目标题</span>
+<span style="padding:4px 10px; border:1px solid #d0d7de; border-radius:6px;">世界观 / 矩阵时序或分支树</span>
+<span style="text-align:right;">保存</span>
+</div>
 </div>
 <div style="display:grid; grid-template-columns:220px 1fr; gap:12px;">
 <div style="border:1px solid #999; border-radius:8px; padding:12px; background:#fff;">
 <strong>左侧导航栏</strong>
-<ul style="margin:8px 0 0 16px; padding:0; list-style:disc;">
-<li>思维导图</li>
-<li>百科仓库</li>
-<li>人物</li>
-<li>势力</li>
-<li>地点</li>
-<li>世界规则</li>
-<li>伏笔线索</li>
-<li>道具</li>
-<li>历史事件</li>
-</ul>
+<div style="display:grid; gap:8px; margin-top:10px;">
+<button type="button" style="text-align:left; padding:8px 10px; border:1px solid #8f3f5f; border-radius:6px; background:#f4e6ec;">思维导图</button>
+<button type="button" style="text-align:left; padding:8px 10px; border:1px solid #d0d7de; border-radius:6px; background:#fff;">百科仓库</button>
+<div style="margin-left:10px; display:grid; gap:6px; color:#57606a;">
+<span>世界观总览</span>
+<span>地理系统</span>
+<span>人物系统</span>
+<span>历史系统</span>
+<span>文化系统</span>
+<span>社会结构</span>
+<span>创作管理</span>
+<span>工具与设置</span>
+</div>
+</div>
 </div>
 <div style="border:1px solid #999; border-radius:8px; padding:12px; background:#fff;">
 <strong>右侧内容区</strong>
-<p style="margin:8px 0 0;">思维导图画布 / 百科条目 / 校验结果</p>
+<div style="display:grid; grid-template-rows:auto minmax(220px,1fr) auto; gap:10px; margin-top:10px;">
+<div style="border:1px solid #d0d7de; border-radius:6px; padding:8px;">工具条：新增节点 / 节点类型 / 折叠展开 / 导入导出 / 定位问题</div>
+<div style="border:1px dashed #8c959f; border-radius:8px; padding:16px; min-height:220px;">世界观思维导图画布，或百科条目列表 + 详情编辑区</div>
+<div style="border:1px solid #d0d7de; border-radius:6px; padding:8px;">状态栏：节点数量 / 待同步 / 校验问题 / 最近保存时间</div>
+</div>
 </div>
 </div>
 </div>
@@ -117,32 +154,82 @@
 | 思维导图 | 打开世界观主画布，用于新增、整理、关联和归类设定节点 |
 | 百科仓库 | 打开结构化知识库目录，用于查看和细化由导图同步生成的条目 |
 
-百科仓库二级 / 三级目录建议：
+百科仓库二级 / 三级目录建议从简单实体分类升级为系统级目录：
 
-```text
-百科仓库
-├── 人物
-│   ├── 主角
-│   ├── 配角
-│   └── 反派
-├── 势力
-│   ├── 国家 / 城邦
-│   ├── 宗门 / 组织
-│   └── 公司 / 阵营
-├── 地点
-│   ├── 城市
-│   ├── 秘境
-│   └── 关键场景
-├── 世界规则
-│   ├── 时间规则
-│   ├── 能量体系
-│   └── 社会制度
-├── 伏笔线索
-│   ├── 已埋设
-│   ├── 待回收
-│   └── 已回收
-└── 道具 / 历史事件 / 术语
-```
+<nav aria-label="百科仓库目录示例" style="border:1px solid #d0d7de; border-radius:10px; padding:14px; background:#fff;">
+<strong>百科仓库</strong>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; margin-top:12px;">
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>世界观总览</strong>
+<ul>
+<li>世界观设定</li>
+<li>核心概念</li>
+<li>基础规则摘要</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>地理系统</strong>
+<ul>
+<li>地理详情</li>
+<li>地点管理</li>
+<li>地图编辑器 / 地图资源</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>人物系统</strong>
+<ul>
+<li>人物档案</li>
+<li>人物关系图</li>
+<li>复杂关系网络</li>
+<li>能力技能</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>历史系统</strong>
+<ul>
+<li>时间线</li>
+<li>关键转折</li>
+<li>历史事件</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>文化系统</strong>
+<ul>
+<li>宗教信仰</li>
+<li>语言文字</li>
+<li>艺术娱乐</li>
+<li>风俗禁忌</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>社会结构</strong>
+<ul>
+<li>政治体系</li>
+<li>经济系统</li>
+<li>外交关系</li>
+<li>组织 / 阵营</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>创作管理</strong>
+<ul>
+<li>伏笔管理</li>
+<li>灵感库</li>
+<li>术语表</li>
+</ul>
+</section>
+<section style="border:1px solid #d0d7de; border-radius:8px; padding:10px;">
+<strong>工具与设置</strong>
+<ul>
+<li>姓名生成</li>
+<li>模板配置</li>
+<li>AI 上下文开关</li>
+</ul>
+</section>
+</div>
+</nav>
+
+底层数据类型仍建议保留 `人物`、`势力`、`地点`、`规则`、`伏笔`、`道具`、`事件` 等稳定实体类型。导航层负责专业创作视角，数据层负责 AI 注入、校验和跨画布联动。
 
 ### 思维导图内容页
 
@@ -165,6 +252,7 @@
 | 规则 | 时间回溯规则、魔法代价 | 世界规则条目 |
 | 伏笔 | 失踪的钥匙、旧案真相 | 伏笔线索条目 |
 | 事件 | 战争、事故、审判 | 历史事件条目 |
+| 工具型节点 | 姓名生成规则、地图资源、灵感片段 | 工具配置或创作管理条目 |
 
 ### 百科仓库内容页
 
@@ -194,50 +282,12 @@ MVP 阶段可以只模拟其中 1-4 步；正式产品需要补齐 5-7 步。
 
 ## 数据模型草案
 
-```text
-WorldMapNode
-├── id
-├── project_id
-├── parent_id
-├── title
-├── node_type
-├── summary
-├── tags[]
-├── position
-├── expanded
-├── source
-└── updated_at
-
-WorldEntry
-├── id
-├── project_id
-├── source_node_id
-├── category
-├── title
-├── summary
-├── generated_fields
-├── manual_fields
-├── ai_context_enabled
-└── updated_at
-
-WorldRelation
-├── id
-├── project_id
-├── source_node_id
-├── target_node_id
-├── relation_type
-└── description
-
-ValidationIssue
-├── id
-├── project_id
-├── issue_type
-├── severity
-├── source_node_id
-├── target_entry_id
-├── message
-└── status
-```
+| 对象 | 关键字段 | 用途 |
+| --- | --- | --- |
+| `WorldMapNode` | `id`、`project_id`、`parent_id`、`title`、`node_type`、`summary`、`tags[]`、`position`、`expanded`、`source`、`updated_at` | 保存思维导图节点、层级、布局和节点语义 |
+| `WorldEntry` | `id`、`project_id`、`source_node_id`、`category`、`title`、`summary`、`generated_fields`、`manual_fields`、`ai_context_enabled`、`updated_at` | 保存百科仓库条目，区分导图派生字段和人工补充字段 |
+| `WorldRelation` | `id`、`project_id`、`source_node_id`、`target_node_id`、`relation_type`、`description` | 保存人物、势力、地点、规则、事件之间的关系 |
+| `ValidationIssue` | `id`、`project_id`、`issue_type`、`severity`、`source_node_id`、`target_entry_id`、`message`、`status` | 保存待补全、冲突、规则违背和伏笔回收问题 |
 
 ## 开源组件评估
 
@@ -284,7 +334,7 @@ ValidationIssue
 1. 世界观页面替换为左侧导航 + 右侧内容区。
 2. 左侧展示「思维导图」「百科仓库」两个一级按钮。
 3. 思维导图页展示可编辑 / 可展开的导图主画布。
-4. 百科仓库展示由导图节点派生的分类树和示例条目。
+4. 百科仓库展示由导图节点派生的系统级目录和示例条目，至少覆盖世界观总览、地理系统、人物系统、历史系统、文化系统、社会结构、创作管理和工具与设置。
 5. 点击项目顶栏「保存」后，模拟同步状态：已生成百科条目、待补全节点、校验问题。
 6. 文档中明确：当前 demo 的同步为前端 mock，正式产品需要服务端事务、版本和冲突处理。
 
@@ -293,7 +343,7 @@ ValidationIssue
 - 世界观内容区呈现左侧导航栏 + 右侧内容区。
 - 左侧有「思维导图」「百科仓库」两个一级操作按钮。
 - 点击「思维导图」进入世界观主画布。
-- 点击「百科仓库」可展开人物、势力、地点、世界规则、伏笔线索等目录。
+- 点击「百科仓库」可展开世界观总览、地理系统、人物系统、历史系统、文化系统、社会结构、创作管理和工具与设置等系统级目录。
 - 点击项目顶栏「保存」后，能表达从思维导图到百科仓库的同步结果。
 - 页面文案能让评审理解：思维导图负责 0-1 搭建，百科仓库负责归档、审核校验和 AI 上下文。
 
