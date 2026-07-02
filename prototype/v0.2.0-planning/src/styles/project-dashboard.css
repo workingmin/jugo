@@ -24,6 +24,104 @@ button {
     var(--color-bg-app);
 }
 
+.dashboard-shell {
+  --dashboard-sidebar-width: 288px;
+  display: grid;
+  grid-template-columns: var(--dashboard-sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--color-bg-app);
+}
+
+.dashboard-sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 100vh;
+  flex-direction: column;
+  gap: var(--gap-xl);
+  padding: 18px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+}
+
+.sidebar-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--gap-md);
+  align-items: start;
+}
+
+.sidebar-head .brand {
+  min-width: 0;
+}
+
+.sidebar-head .icon-button {
+  min-width: 78px;
+  padding: 0 9px;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: var(--gap-sm);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  text-align: left;
+}
+
+.sidebar-link:hover,
+.sidebar-link.is-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.dashboard-main {
+  display: grid;
+  min-height: 100vh;
+  min-width: 0;
+  padding: 0;
+}
+
+.empty-workspace {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--color-primary-soft) 72%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-surface) 78%, transparent), transparent 62%),
+    var(--color-bg-app);
+}
+
+.empty-workspace-content {
+  display: grid;
+  width: min(560px, 100%);
+  justify-items: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.empty-workspace-content h1 {
+  margin-bottom: 12px;
+  font-size: 30px;
+}
+
+.empty-workspace-content p:not(.eyebrow) {
+  max-width: 520px;
+  margin-bottom: 24px;
+  color: var(--color-text-secondary);
+}
+
 .topbar {
   position: sticky;
   top: 0;
@@ -667,6 +765,10 @@ h1 {
 }
 
 @media (max-width: 1120px) {
+  .dashboard-shell {
+    --dashboard-sidebar-width: 252px;
+  }
+
   .topbar {
     height: auto;
     flex-wrap: wrap;
@@ -693,6 +795,25 @@ h1 {
 }
 
 @media (max-width: 720px) {
+  .dashboard-shell {
+    display: block;
+  }
+
+  .dashboard-sidebar {
+    position: static;
+    height: auto;
+    width: auto;
+  }
+
+  .dashboard-main {
+    min-height: auto;
+    padding: 0;
+  }
+
+  .empty-workspace {
+    min-height: calc(100vh - 132px);
+  }
+
   .dashboard {
     padding: 20px 14px 36px;
   }

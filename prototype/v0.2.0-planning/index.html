@@ -5,105 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JUGO v0.2.0 项目管理首页</title>
     <script>
+      const storageResetKey = 'jugo-dashboard-sidebar-empty-reset-20260702'
+      if (localStorage.getItem(storageResetKey) !== 'done') {
+        localStorage.clear()
+        localStorage.setItem(storageResetKey, 'done')
+      }
       const savedTheme = localStorage.getItem('jugo-theme')
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light')
     </script>
-    <link rel="stylesheet" href="./src/styles/theme.css" />
-    <link rel="stylesheet" href="./src/styles/project-dashboard.css" />
+    <link rel="stylesheet" href="./src/styles/theme.css?v=20260702-grid" />
+    <link rel="stylesheet" href="./src/styles/project-dashboard.css?v=20260702-grid" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <a class="brand" href="/" aria-label="JUGO 项目首页">
-          <span class="brand-mark">J</span>
-          <span>
-            <strong>JUGO</strong>
-            <small>v0.2.0-planning</small>
-          </span>
-        </a>
-
-        <nav class="main-nav" aria-label="主导航">
-          <a class="nav-item is-active" href="/">项目</a>
-          <button class="nav-item" type="button" data-toast="世界观模板库将在后续原型阶段接入">世界观模板库</button>
-          <button class="nav-item" type="button" data-toast="帮助中心将在需求评审稿确认后接入">帮助中心</button>
-        </nav>
-
-        <div class="topbar-actions">
-          <div class="state-switch" aria-label="演示状态切换">
-            <button class="state-option is-active" type="button" data-state="projects">有项目</button>
-            <button class="state-option" type="button" data-state="empty">空白态</button>
-          </div>
+    <div class="dashboard-shell">
+      <aside class="dashboard-sidebar" aria-label="项目管理导航">
+        <div class="sidebar-head">
+          <a class="brand" href="./" aria-label="JUGO 项目首页">
+            <span class="brand-mark">J</span>
+            <span>
+              <strong>JUGO</strong>
+              <small>v0.2.0-planning</small>
+            </span>
+          </a>
           <button class="icon-button" type="button" id="themeToggle" aria-label="切换主题">
             <span class="theme-icon" aria-hidden="true">☼</span>
             <span class="theme-label">日间</span>
           </button>
-          <button class="primary-button" type="button" data-open-create>新建项目</button>
         </div>
-      </header>
 
-      <main class="dashboard">
-        <section class="dashboard-heading">
-          <div>
-            <p class="eyebrow">项目管理工作台</p>
-            <h1>创作项目</h1>
-            <p class="heading-copy">从项目入口选择线性单结局或多分支多结局模板，进入世界观、时序、分支和节拍的评审链路。</p>
-          </div>
-          <div class="summary-strip" aria-label="项目统计">
-            <div>
-              <strong id="summaryTotal">0</strong>
-              <span>项目</span>
-            </div>
-            <div>
-              <strong id="summaryLinear">0</strong>
-              <span>线性</span>
-            </div>
-            <div>
-              <strong id="summaryBranching">0</strong>
-              <span>多分支</span>
-            </div>
-          </div>
-        </section>
+        <nav class="sidebar-nav" aria-label="主导航">
+          <a class="sidebar-link is-active" href="./">项目</a>
+          <button class="sidebar-link" type="button" data-toast="帮助中心将在需求评审稿确认后接入">帮助中心</button>
+        </nav>
+      </aside>
 
-        <section class="project-section" id="projectsState" aria-label="项目列表">
-          <div class="toolbar">
-            <div class="search-box">
-              <span aria-hidden="true">⌕</span>
-              <input id="projectSearch" type="search" placeholder="搜索项目、负责人或标签" />
-            </div>
-            <select id="typeFilter" aria-label="按项目类型筛选">
-              <option value="all">全部类型</option>
-              <option value="linear">线性单结局</option>
-              <option value="branching">多分支多结局</option>
-            </select>
-            <select id="ownerFilter" aria-label="按负责人筛选">
-              <option value="all">全部负责人</option>
-            </select>
-          </div>
-
-          <div class="project-grid" id="projectGrid"></div>
-        </section>
-
-        <section class="empty-state is-hidden" id="emptyState" aria-label="空白项目引导">
-          <div class="empty-panel">
-            <div class="empty-copy">
-              <p class="eyebrow">新账号</p>
-              <h2>开始创作你的小说 / 互动剧本</h2>
-              <p>选择标准化模板后，系统将初始化对应的世界观表单、评审画布和节拍结构。</p>
-              <button class="primary-button large" type="button" data-open-create>新建项目</button>
-            </div>
-            <div class="flow-grid" aria-label="创作流程">
-              <div class="flow-card">
-                <span>01</span>
-                <strong>线性单结局</strong>
-                <p>世界观 → 矩阵时序 → 节拍板</p>
-              </div>
-              <div class="flow-card">
-                <span>02</span>
-                <strong>多分支多结局</strong>
-                <p>世界观 → 分支树 → 矩阵时序 → 节拍板</p>
-              </div>
-            </div>
+      <main class="dashboard-main">
+        <section class="empty-workspace" aria-label="空白项目引导">
+          <div class="empty-workspace-content">
+            <h1>开始创作你的小说 / 互动剧本</h1>
+            <p>选择标准化模板后，系统将初始化对应的世界观表单、评审画布和节拍结构。</p>
+            <button class="primary-button large" type="button" data-open-create>新建项目</button>
           </div>
         </section>
       </main>
@@ -137,6 +79,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.js?v=20260702-grid"></script>
   </body>
 </html>

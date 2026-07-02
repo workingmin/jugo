@@ -1,0 +1,8 @@
+{
+  "name": "jugo-v0.2.0-planning-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/main.js && node --check src/workspace.js"
+  }
+}

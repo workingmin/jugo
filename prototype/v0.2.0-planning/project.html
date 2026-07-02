@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JUGO v0.2.0 项目工作台</title>
+    <script>
+      const savedTheme = localStorage.getItem('jugo-theme')
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light')
+    </script>
+    <link rel="stylesheet" href="./src/styles/theme.css?v=20260702-editor-nav" />
+    <link rel="stylesheet" href="./src/styles/project-dashboard.css?v=20260702-editor-nav" />
+    <link rel="stylesheet" href="./src/styles/project-workspace.css?v=20260702-editor-nav" />
+  </head>
+  <body>
+    <div class="workspace-shell">
+      <header class="editor-topbar">
+        <div class="editor-topbar-left">
+          <a class="back-button" href="./" aria-label="返回项目管理页面">&lt;</a>
+          <span class="project-title-label" id="projectTitleLabel">项目编辑</span>
+        </div>
+
+        <nav class="editor-tabs" id="editorTabs" aria-label="项目主内容区"></nav>
+      </header>
+
+      <main class="workspace">
+        <section class="workspace-grid">
+          <aside class="workspace-sidebar">
+            <h2>评审路径</h2>
+            <ol id="reviewPath"></ol>
+            <button class="secondary-button full-width" type="button" data-open-worldview>编辑世界观</button>
+          </aside>
+
+          <section class="workspace-canvas" id="workspaceCanvas" aria-live="polite"></section>
+
+          <aside class="workspace-detail">
+            <h2>当前节点</h2>
+            <div id="detailPanel"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <aside class="worldview-drawer is-hidden" id="worldviewDrawer" aria-label="编辑世界观">
+      <div class="drawer-panel">
+        <header class="drawer-header">
+          <div>
+            <p class="eyebrow">世界观约束</p>
+            <h2>编辑世界观</h2>
+          </div>
+          <button class="icon-only" type="button" data-close-worldview aria-label="关闭">×</button>
+        </header>
+        <div class="worldview-form">
+          <label>
+            核心人物
+            <textarea>主角在关键抉择中不能主动牺牲无辜者；反派行动必须符合既定阵营目标。</textarea>
+          </label>
+          <label>
+            世界规则
+            <textarea>时间回溯只能保留记忆，不能改变物理损耗；伏笔必须在终局前完成回收。</textarea>
+          </label>
+          <label>
+            AI 约束
+            <textarea>生成时必须读取人物动机、阵营关系和伏笔登记，避免 OOC 和时序冲突。</textarea>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <script type="module" src="./src/workspace.js?v=20260702-editor-nav"></script>
+  </body>
+</html>
