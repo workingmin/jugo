@@ -11,10 +11,13 @@ const viewLabels = {
 
 const defaultView = getDefaultProjectView(project)
 let activeView = normalizeView(params.get('view') || defaultView)
+const draftStorageKey = `jugo-project-draft-${project.id}`
 
 const els = {
   editorTabs: document.querySelector('#editorTabs'),
   projectTitleLabel: document.querySelector('#projectTitleLabel'),
+  saveButton: document.querySelector('[data-save-project]'),
+  saveStatus: document.querySelector('#saveStatus'),
   reviewPath: document.querySelector('#reviewPath'),
   workspaceCanvas: document.querySelector('#workspaceCanvas'),
   detailPanel: document.querySelector('#detailPanel'),
@@ -29,6 +32,60 @@ function getAllowedViews() {
 
 function normalizeView(view) {
   return getAllowedViews().includes(view) ? view : defaultView
+}
+
+function getWorldviewFields() {
+  return [...document.querySelectorAll('[data-worldview-field]')]
+}
+
+function getWorldviewDraft() {
+  return getWorldviewFields().reduce((draft, field) => {
+    draft[field.dataset.worldviewField] = field.value
+    return draft
+  }, {})
+}
+
+function setSaveStatus(message) {
+  els.saveStatus.textContent = message
+}
+
+function formatSavedTime(date) {
+  return date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function loadDraft() {
+  const rawDraft = localStorage.getItem(draftStorageKey)
+  if (!rawDraft) return
+
+  try {
+    const draft = JSON.parse(rawDraft)
+    getWorldviewFields().forEach((field) => {
+      const value = draft.worldview?.[field.dataset.worldviewField]
+      if (typeof value === 'string') field.value = value
+    })
+    if (draft.savedAt) setSaveStatus(`已保存 ${formatSavedTime(new Date(draft.savedAt))}`)
+  } catch {
+    localStorage.removeItem(draftStorageKey)
+  }
+}
+
+function saveDraft() {
+  const savedAt = new Date()
+  localStorage.setItem(draftStorageKey, JSON.stringify({
+    projectId: project.id,
+    projectName: project.name,
+    worldview: getWorldviewDraft(),
+    savedAt: savedAt.toISOString()
+  }))
+  setSaveStatus(`已保存 ${formatSavedTime(savedAt)}`)
+  els.saveButton.classList.add('is-saved')
+  window.clearTimeout(saveDraft.timer)
+  saveDraft.timer = window.setTimeout(() => {
+    els.saveButton.classList.remove('is-saved')
+  }, 1200)
 }
 
 function setView(view) {
@@ -138,12 +195,21 @@ function render() {
 function bindEvents() {
   document.addEventListener('click', (event) => {
     const viewButton = event.target.closest('[data-view]')
+    const saveButton = event.target.closest('[data-save-project]')
     const openWorldview = event.target.closest('[data-open-worldview]')
     const closeWorldview = event.target.closest('[data-close-worldview]')
 
     if (viewButton) setView(viewButton.dataset.view)
+    if (saveButton) saveDraft()
     if (openWorldview) els.worldviewDrawer.classList.remove('is-hidden')
     if (closeWorldview || event.target === els.worldviewDrawer) els.worldviewDrawer.classList.add('is-hidden')
+  })
+
+  getWorldviewFields().forEach((field) => {
+    field.addEventListener('input', () => {
+      els.saveButton.classList.remove('is-saved')
+      setSaveStatus('有未保存修改')
+    })
   })
 
   document.addEventListener('keydown', (event) => {
@@ -151,5 +217,6 @@ function bindEvents() {
   })
 }
 
+loadDraft()
 bindEvents()
 render()

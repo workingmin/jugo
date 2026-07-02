@@ -9,9 +9,9 @@
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
       document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light')
     </script>
-    <link rel="stylesheet" href="./src/styles/theme.css?v=20260702-editor-nav" />
-    <link rel="stylesheet" href="./src/styles/project-dashboard.css?v=20260702-editor-nav" />
-    <link rel="stylesheet" href="./src/styles/project-workspace.css?v=20260702-editor-nav" />
+    <link rel="stylesheet" href="./src/styles/theme.css?v=20260702-editor-save" />
+    <link rel="stylesheet" href="./src/styles/project-dashboard.css?v=20260702-editor-save" />
+    <link rel="stylesheet" href="./src/styles/project-workspace.css?v=20260702-editor-save" />
   </head>
   <body>
     <div class="workspace-shell">
@@ -22,6 +22,11 @@
         </div>
 
         <nav class="editor-tabs" id="editorTabs" aria-label="项目主内容区"></nav>
+
+        <div class="editor-topbar-actions">
+          <span class="save-status" id="saveStatus" aria-live="polite"></span>
+          <button class="save-button" type="button" data-save-project>保存</button>
+        </div>
       </header>
 
       <main class="workspace">
@@ -54,20 +59,20 @@
         <div class="worldview-form">
           <label>
             核心人物
-            <textarea>主角在关键抉择中不能主动牺牲无辜者；反派行动必须符合既定阵营目标。</textarea>
+            <textarea data-worldview-field="characters">主角在关键抉择中不能主动牺牲无辜者；反派行动必须符合既定阵营目标。</textarea>
           </label>
           <label>
             世界规则
-            <textarea>时间回溯只能保留记忆，不能改变物理损耗；伏笔必须在终局前完成回收。</textarea>
+            <textarea data-worldview-field="rules">时间回溯只能保留记忆，不能改变物理损耗；伏笔必须在终局前完成回收。</textarea>
           </label>
           <label>
             AI 约束
-            <textarea>生成时必须读取人物动机、阵营关系和伏笔登记，避免 OOC 和时序冲突。</textarea>
+            <textarea data-worldview-field="aiConstraints">生成时必须读取人物动机、阵营关系和伏笔登记，避免 OOC 和时序冲突。</textarea>
           </label>
         </div>
       </div>
     </aside>
 
-    <script type="module" src="./src/workspace.js?v=20260702-editor-nav"></script>
+    <script type="module" src="./src/workspace.js?v=20260702-editor-save"></script>
   </body>
 </html>
