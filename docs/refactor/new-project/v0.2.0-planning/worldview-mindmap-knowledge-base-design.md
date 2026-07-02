@@ -81,27 +81,32 @@
 
 世界观主内容区建议采用局部双栏，不影响项目编辑页顶部导航：
 
-```text
-项目编辑页顶栏
-┌──────────────────────────────────────────────────────────────┐
-│ <  项目标题              世界观 / 矩阵时序或分支树       保存 │
-└──────────────────────────────────────────────────────────────┘
-
-世界观内容区
-┌───────────────┬──────────────────────────────────────────────┐
-│ 左侧导航栏     │ 右侧内容区                                      │
-│               │                                                │
-│ 思维导图       │ 思维导图画布 / 百科条目 / 校验结果               │
-│ 百科仓库       │                                                │
-│  人物          │                                                │
-│  势力          │                                                │
-│  地点          │                                                │
-│  世界规则       │                                                │
-│  伏笔线索       │                                                │
-│  道具          │                                                │
-│  历史事件       │                                                │
-└───────────────┴──────────────────────────────────────────────┘
-```
+<div style="border:1px solid #d0d7de; border-radius:10px; padding:12px; background:#fafbfc; font-family:system-ui, -apple-system, sans-serif;">
+<div style="border:1px solid #999; border-radius:8px; padding:10px 12px; margin-bottom:10px; background:#fff;">
+<strong>项目编辑页顶栏</strong><br>
+<span style="display:inline-block; margin-top:6px;">← 项目标题 · 世界观 / 矩阵时序或分支树 · 保存</span>
+</div>
+<div style="display:grid; grid-template-columns:220px 1fr; gap:12px;">
+<div style="border:1px solid #999; border-radius:8px; padding:12px; background:#fff;">
+<strong>左侧导航栏</strong>
+<ul style="margin:8px 0 0 16px; padding:0; list-style:disc;">
+<li>思维导图</li>
+<li>百科仓库</li>
+<li>人物</li>
+<li>势力</li>
+<li>地点</li>
+<li>世界规则</li>
+<li>伏笔线索</li>
+<li>道具</li>
+<li>历史事件</li>
+</ul>
+</div>
+<div style="border:1px solid #999; border-radius:8px; padding:12px; background:#fff;">
+<strong>右侧内容区</strong>
+<p style="margin:8px 0 0;">思维导图画布 / 百科条目 / 校验结果</p>
+</div>
+</div>
+</div>
 
 ### 左侧导航栏
 
