@@ -58,6 +58,7 @@ export const projects = [
 ]
 
 const localProjectsStorageKey = 'jugo-projects'
+const projectDraftStoragePrefix = 'jugo-project-draft-'
 
 export function getProjectById(projectId) {
   return getLocalProjects().find((project) => project.id === projectId) || projects.find((project) => project.id === projectId) || projects[0]
@@ -79,9 +80,79 @@ export function saveLocalProject(project) {
   ]))
 }
 
-function getLocalProjects() {
+export function cleanupDuplicateProjectNames() {
+  if (typeof localStorage === 'undefined') return { removedCount: 0 }
+
+  const records = [
+    ...readStoredLocalProjects().map((project, index) => ({
+      project,
+      source: 'project-list',
+      storageIndex: index,
+      timestamp: getProjectComparableTime(project)
+    })),
+    ...getDraftProjects().map((project, index) => ({
+      project,
+      source: 'draft',
+      draftKey: `${projectDraftStoragePrefix}${project.id}`,
+      storageIndex: index,
+      timestamp: getProjectComparableTime(project)
+    }))
+  ]
+  const recordsByName = new Map()
+
+  records.forEach((record) => {
+    const nameKey = normalizeProjectNameKey(record.project.name)
+    if (!nameKey) return
+
+    const existing = recordsByName.get(nameKey)
+    if (!existing || shouldKeepProjectRecord(record, existing)) {
+      recordsByName.set(nameKey, record)
+    }
+  })
+
+  const keepIds = new Set([...recordsByName.values()].map((record) => record.project.id))
+  const dedupedProjects = [...recordsByName.values()]
+    .map((record) => record.project)
+    .sort((a, b) => getProjectComparableTime(a) - getProjectComparableTime(b))
+  const removedIds = new Set(records
+    .map((record) => record.project.id)
+    .filter((projectId) => projectId && !keepIds.has(projectId)))
+
+  if (dedupedProjects.length > 0 || readStoredLocalProjects().length > 0) {
+    localStorage.setItem(localProjectsStorageKey, JSON.stringify(dedupedProjects))
+  }
+
+  removedIds.forEach((projectId) => {
+    localStorage.removeItem(`${projectDraftStoragePrefix}${projectId}`)
+  })
+
+  return { removedCount: removedIds.size }
+}
+
+export function hasDuplicateProjectName(projectName, existingProjects, excludedProjectId = '') {
+  const nameKey = normalizeProjectNameKey(projectName)
+  if (!nameKey) return false
+
+  return existingProjects.some((project) => (
+    project.id !== excludedProjectId && normalizeProjectNameKey(project.name) === nameKey
+  ))
+}
+
+export function getLocalProjects() {
   if (typeof localStorage === 'undefined') return []
 
+  const storedProjects = readStoredLocalProjects()
+  const projectsById = new Map(storedProjects.map((project) => [project.id, project]))
+  getDraftProjects().forEach((project) => {
+    if (!projectsById.has(project.id)) {
+      projectsById.set(project.id, project)
+    }
+  })
+
+  return [...projectsById.values()]
+}
+
+function readStoredLocalProjects() {
   try {
     const parsedProjects = JSON.parse(localStorage.getItem(localProjectsStorageKey) || '[]')
     return Array.isArray(parsedProjects)
@@ -91,6 +162,77 @@ function getLocalProjects() {
     localStorage.removeItem(localProjectsStorageKey)
     return []
   }
+}
+
+function getDraftProjects() {
+  const draftProjects = []
+
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index)
+    if (!key?.startsWith(projectDraftStoragePrefix)) continue
+
+    try {
+      const parsedDraft = JSON.parse(localStorage.getItem(key) || '{}')
+      const projectId = parsedDraft.projectId || key.replace(projectDraftStoragePrefix, '')
+      const fallbackProject = projects.find((project) => project.id === projectId) || {}
+      const savedAt = parsedDraft.syncSummary?.savedAt ? new Date(parsedDraft.syncSummary.savedAt) : null
+      const pendingCount = Number(parsedDraft.syncSummary?.pendingCount || 0)
+      const issueCount = Number(parsedDraft.syncSummary?.issueCount || 0)
+      const totalIssueCount = pendingCount + issueCount
+
+      draftProjects.push(normalizeProject({
+        ...fallbackProject,
+        id: projectId,
+        name: parsedDraft.projectName || fallbackProject.name || projectId,
+        worldName: parsedDraft.worldName || fallbackProject.worldName || parsedDraft.projectName || projectId,
+        type: parsedDraft.projectType || fallbackProject.type,
+        updatedAt: savedAt && !Number.isNaN(savedAt.getTime())
+          ? formatLocalProjectTime(savedAt)
+          : parsedDraft.updatedAt || fallbackProject.updatedAt,
+        health: parsedDraft.syncSummary
+          ? `${totalIssueCount} 个待处理问题`
+          : fallbackProject.health,
+        summary: fallbackProject.summary || `${parsedDraft.worldName || parsedDraft.projectName || projectId} 已保存项目草稿。`
+      }))
+    } catch {
+      localStorage.removeItem(key)
+    }
+  }
+
+  return draftProjects
+}
+
+function shouldKeepProjectRecord(candidate, current) {
+  if (candidate.timestamp !== current.timestamp) {
+    return candidate.timestamp < current.timestamp
+  }
+
+  if (candidate.source !== current.source) {
+    return candidate.source === 'project-list'
+  }
+
+  return candidate.storageIndex < current.storageIndex
+}
+
+function normalizeProjectNameKey(name) {
+  return String(name || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('zh-CN')
+}
+
+function getProjectComparableTime(project) {
+  const parsedTime = parseProjectTime(project.updatedAt)
+  if (Number.isFinite(parsedTime)) return parsedTime
+
+  const localIdTime = String(project.id || '').match(/^local-(\d+)$/)?.[1]
+  return localIdTime ? Number(localIdTime) : Number.MAX_SAFE_INTEGER
+}
+
+function parseProjectTime(value) {
+  if (!value) return Number.NaN
+  const normalized = String(value).includes('T')
+    ? String(value)
+    : String(value).replace(' ', 'T')
+  const timestamp = new Date(normalized).getTime()
+  return Number.isNaN(timestamp) ? Number.NaN : timestamp
 }
 
 function normalizeProject(project) {

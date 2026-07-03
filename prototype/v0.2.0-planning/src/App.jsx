@@ -13,7 +13,14 @@ import {
   Position,
   ReactFlow
 } from '@xyflow/react'
-import { getDefaultProjectView, getProjectById, saveLocalProject } from './data/projects.js'
+import {
+  cleanupDuplicateProjectNames,
+  getDefaultProjectView,
+  getLocalProjects,
+  getProjectById,
+  hasDuplicateProjectName,
+  saveLocalProject
+} from './data/projects.js'
 
 const viewLabels = {
   worldview: '世界观',
@@ -27,7 +34,6 @@ const systemCatalog = [
     title: '世界观总览',
     icon: '◎',
     side: 'left',
-    y: 40,
     modules: ['世界观设定', '核心概念', '基础规则摘要']
   },
   {
@@ -35,7 +41,6 @@ const systemCatalog = [
     title: '地理系统',
     icon: '⌖',
     side: 'left',
-    y: 190,
     modules: ['地理详情', '地点管理', '地图资源']
   },
   {
@@ -43,7 +48,6 @@ const systemCatalog = [
     title: '人物系统',
     icon: '☷',
     side: 'left',
-    y: 340,
     modules: ['人物档案', '人物关系图', '复杂关系网络', '能力技能']
   },
   {
@@ -51,7 +55,6 @@ const systemCatalog = [
     title: '历史系统',
     icon: '◷',
     side: 'left',
-    y: 520,
     modules: ['时间线', '关键转折', '历史事件']
   },
   {
@@ -59,7 +62,6 @@ const systemCatalog = [
     title: '文化系统',
     icon: '✦',
     side: 'right',
-    y: 70,
     modules: ['宗教信仰', '语言文字', '艺术娱乐', '风俗禁忌']
   },
   {
@@ -67,7 +69,6 @@ const systemCatalog = [
     title: '社会结构',
     icon: '▥',
     side: 'right',
-    y: 250,
     modules: ['政治体系', '经济系统', '外交关系', '组织 / 阵营']
   },
   {
@@ -75,18 +76,26 @@ const systemCatalog = [
     title: '创作管理',
     icon: '✎',
     side: 'right',
-    y: 430,
     modules: ['伏笔管理', '灵感库', '术语表']
-  },
-  {
-    id: 'tools',
-    title: '工具与设置',
-    icon: '#',
-    side: 'right',
-    y: 580,
-    modules: ['姓名生成', '模板配置', 'AI 上下文开关']
   }
 ]
+
+const deprecatedWorldviewNodeIds = new Set(['tools'])
+const deprecatedWorldviewNodeIdPattern = /^tools-\d+$/
+
+const catalogLayoutConfig = {
+  leftX: 120,
+  rightX: 920,
+  rootX: 520,
+  startY: 72,
+  groupMinHeight: 260,
+  groupGap: 64,
+  moduleSpacing: 96,
+  moduleXOffset: 300,
+  childXOffset: 300,
+  childYSpacing: 96,
+  noteYSpacing: 108
+}
 
 const nodeTypes = {
   worldNode: WorldNode,
@@ -121,6 +130,7 @@ export function App() {
   const isProjectPage = window.location.pathname.endsWith('/project.html') || window.location.pathname.endsWith('project.html')
 
   useEffect(() => {
+    cleanupDuplicateProjectNames()
     const savedTheme = localStorage.getItem('jugo-theme')
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light')
@@ -133,10 +143,28 @@ function ProjectDashboard() {
   const [isCreateOpen, setCreateOpen] = useState(false)
   const [toast, setToast] = useState('')
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'light')
+  const [localProjects, setLocalProjects] = useState(() => getLocalProjects())
   const [createForm, setCreateForm] = useState(createInitialProjectForm)
   const [createTouched, setCreateTouched] = useState({})
-  const createErrors = validateCreateProjectForm(createForm)
+  const createErrors = validateCreateProjectForm(createForm, localProjects)
   const canCreateProject = Object.keys(createErrors).length === 0
+  const linearProjectCount = localProjects.filter((project) => project.type === 'linear').length
+  const branchingProjectCount = localProjects.filter((project) => project.type === 'branching').length
+
+  useEffect(() => {
+    function refreshLocalProjects() {
+      cleanupDuplicateProjectNames()
+      setLocalProjects(getLocalProjects())
+    }
+
+    refreshLocalProjects()
+    window.addEventListener('focus', refreshLocalProjects)
+    window.addEventListener('storage', refreshLocalProjects)
+    return () => {
+      window.removeEventListener('focus', refreshLocalProjects)
+      window.removeEventListener('storage', refreshLocalProjects)
+    }
+  }, [])
 
   function showToast(message) {
     setToast(message)
@@ -167,7 +195,7 @@ function ProjectDashboard() {
 
   function submitCreateProject(event) {
     event.preventDefault()
-    const nextErrors = validateCreateProjectForm(createForm)
+    const nextErrors = validateCreateProjectForm(createForm, localProjects)
     setCreateTouched({ projectName: true, worldName: true, templateType: true })
 
     if (Object.keys(nextErrors).length > 0) {
@@ -220,13 +248,48 @@ function ProjectDashboard() {
         </aside>
 
         <main className="dashboard-main">
-          <section className="empty-workspace" aria-label="空白项目引导">
-            <div className="empty-workspace-content">
-              <h1>开始创作你的小说 / 互动剧本</h1>
-              <p>选择标准化模板后，系统将初始化对应的世界观主画布、评审路径和结构工作区。</p>
-              <button className="primary-button large" type="button" onClick={() => setCreateOpen(true)}>新建项目</button>
-            </div>
-          </section>
+          {localProjects.length === 0 ? (
+            <section className="empty-workspace" aria-label="空白项目引导">
+              <div className="empty-workspace-content">
+                <h1>开始创作你的小说 / 互动剧本</h1>
+                <p>选择标准化模板后，系统将初始化对应的世界观主画布、评审路径和结构工作区。</p>
+                <button className="primary-button large" type="button" onClick={() => setCreateOpen(true)}>新建项目</button>
+              </div>
+            </section>
+          ) : (
+            <section className="dashboard" aria-label="项目列表">
+              <header className="dashboard-heading">
+                <div>
+                  <p className="eyebrow">项目</p>
+                  <h1>最近项目</h1>
+                  <p className="heading-copy">继续编辑已保存的小说 / 互动剧本项目，或创建新的项目结构。</p>
+                </div>
+                <div className="dashboard-heading-actions">
+                  <div className="summary-strip" aria-label="项目统计">
+                    <div>
+                      <strong>{localProjects.length}</strong>
+                      <span>全部</span>
+                    </div>
+                    <div>
+                      <strong>{linearProjectCount}</strong>
+                      <span>线性</span>
+                    </div>
+                    <div>
+                      <strong>{branchingProjectCount}</strong>
+                      <span>分支</span>
+                    </div>
+                  </div>
+                  <button className="primary-button large" type="button" onClick={() => setCreateOpen(true)}>新建项目</button>
+                </div>
+              </header>
+
+              <div className="project-grid">
+                {localProjects.map((project) => (
+                  <ProjectCard project={project} key={project.id} />
+                ))}
+              </div>
+            </section>
+          )}
         </main>
       </div>
 
@@ -329,6 +392,56 @@ function ProjectDashboard() {
   )
 }
 
+function ProjectCard({ project }) {
+  const projectHref = `./project.html?id=${encodeURIComponent(project.id)}&view=${getDefaultProjectView(project)}`
+  const previewTracks = project.tracks.slice(0, 3)
+
+  return (
+    <article className="project-card">
+      <div className={`project-preview ${project.type}`}>
+        {previewTracks.map((track, index) => (
+          <div className="preview-track" key={`${project.id}-${track}`}>
+            <span>{track}</span>
+            <i style={{ width: `${36 + index * 12}%` }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="project-body">
+        <div className="project-title-row">
+          <div>
+            <h2>{project.name}</h2>
+            <span className={`project-type ${project.type}`}>{project.typeLabel}</span>
+          </div>
+          <span className="project-health">{project.health}</span>
+        </div>
+        <p className="project-summary">{project.summary}</p>
+        <div className="tag-row">
+          {project.tags.map((tag) => <span key={`${project.id}-${tag}`}>{tag}</span>)}
+        </div>
+        <dl className="project-meta">
+          <div>
+            <dt>世界</dt>
+            <dd>{project.worldName}</dd>
+          </div>
+          <div>
+            <dt>负责人</dt>
+            <dd>{project.owner}</dd>
+          </div>
+          <div>
+            <dt>更新</dt>
+            <dd>{project.updatedAt}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <footer className="project-actions">
+        <a className="secondary-button" href={projectHref}>打开项目</a>
+      </footer>
+    </article>
+  )
+}
+
 function createInitialProjectForm() {
   return {
     projectName: '',
@@ -337,7 +450,7 @@ function createInitialProjectForm() {
   }
 }
 
-function validateCreateProjectForm(form) {
+function validateCreateProjectForm(form, existingProjects = []) {
   const errors = {}
   const projectName = form.projectName.trim()
   const worldName = form.worldName.trim()
@@ -346,6 +459,8 @@ function validateCreateProjectForm(form) {
     errors.projectName = '请输入项目名称'
   } else if (projectName.length > 40) {
     errors.projectName = '最多输入 40 个字符'
+  } else if (hasDuplicateProjectName(projectName, existingProjects)) {
+    errors.projectName = '项目名称已存在，请使用其他名称'
   }
 
   if (!worldName) {
@@ -372,7 +487,7 @@ function createProjectInfoForm(project) {
   }
 }
 
-function validateProjectInfoForm(form) {
+function validateProjectInfoForm(form, existingProjects = [], currentProjectId = '') {
   const errors = {}
   const projectName = form.projectName.trim()
   const worldName = form.worldName.trim()
@@ -381,6 +496,8 @@ function validateProjectInfoForm(form) {
     errors.projectName = '请输入项目名称'
   } else if (projectName.length > 40) {
     errors.projectName = '最多输入 40 个字符'
+  } else if (hasDuplicateProjectName(projectName, existingProjects, currentProjectId)) {
+    errors.projectName = '项目名称已存在，请使用其他名称'
   }
 
   if (!worldName) {
@@ -465,7 +582,7 @@ function ProjectWorkspace() {
   const [isProjectInfoOpen, setProjectInfoOpen] = useState(false)
   const [projectInfoForm, setProjectInfoForm] = useState(() => createProjectInfoForm(project))
   const [projectInfoTouched, setProjectInfoTouched] = useState({})
-  const projectInfoErrors = validateProjectInfoForm(projectInfoForm)
+  const projectInfoErrors = validateProjectInfoForm(projectInfoForm, getLocalProjects(), project.id)
   const canSaveProjectInfo = Object.keys(projectInfoErrors).length === 0
   const [isAiAssistantOpen, setAiAssistantOpen] = useState(false)
   const [aiMessages, setAiMessages] = useState(() => ([
@@ -490,6 +607,10 @@ function ProjectWorkspace() {
 
   function saveProject() {
     const savedAt = new Date()
+    const nextProject = {
+      ...project,
+      updatedAt: formatProjectTimestamp(savedAt)
+    }
     const nextWorldviewDraft = markWorldviewSynced(worldviewDraft, savedAt)
     const syncableNodes = getSyncableNodes(nextWorldviewDraft.nodes)
     const knowledgeEntries = createKnowledgeEntries(nextWorldviewDraft.nodes)
@@ -501,16 +622,20 @@ function ProjectWorkspace() {
       noteCount: nextWorldviewDraft.nodes.filter((node) => node.type === 'noteNode').length
     }
 
+    saveLocalProject(nextProject)
     localStorage.setItem(`jugo-project-draft-${project.id}`, JSON.stringify({
       projectId: project.id,
-      projectName: project.name,
-      worldName: project.worldName,
+      projectName: nextProject.name,
+      worldName: nextProject.worldName,
+      projectType: nextProject.type,
+      updatedAt: nextProject.updatedAt,
       activeView,
       worldview: nextWorldviewDraft,
       knowledgeEntries,
       syncSummary
     }))
 
+    setProject(nextProject)
     setWorldviewDraft(nextWorldviewDraft)
     setSyncResult(syncSummary)
     setSaveStatus(`已保存 ${formatSavedTime(savedAt)}`)
@@ -555,7 +680,7 @@ function ProjectWorkspace() {
 
   function submitProjectInfo(event) {
     event.preventDefault()
-    const nextErrors = validateProjectInfoForm(projectInfoForm)
+    const nextErrors = validateProjectInfoForm(projectInfoForm, getLocalProjects(), project.id)
     setProjectInfoTouched({ projectName: true, worldName: true })
 
     if (Object.keys(nextErrors).length > 0) return
@@ -928,13 +1053,11 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   function addCustomNode() {
     const parent = getAttachableParent(selectedNode, draft.nodes)
     const customId = `custom-${Date.now()}`
+    const position = getNextChildNodePosition(parent, draft.nodes)
     const customNode = {
       id: customId,
       type: 'worldNode',
-      position: {
-        x: parent.position.x + 230,
-        y: parent.position.y + 90
-      },
+      position,
       data: {
         title: '自增设定节点',
         nodeType: 'custom',
@@ -981,13 +1104,11 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   function addNoteNode() {
     const parent = getAttachableParent(selectedNode, draft.nodes)
     const noteId = `note-${Date.now()}`
+    const position = getNextChildNodePosition(parent, draft.nodes, 'note')
     const noteNode = {
       id: noteId,
       type: 'noteNode',
-      position: {
-        x: parent.position.x + 190,
-        y: parent.position.y - 130
-      },
+      position,
       data: {
         title: '创作便签',
         nodeType: 'note',
@@ -1130,6 +1251,9 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                 fitView
                 minZoom={0.35}
                 maxZoom={1.6}
+                panOnScroll={false}
+                preventScrolling={false}
+                zoomOnScroll={false}
               >
                 <Background color="var(--color-grid-line)" gap={28} />
                 <Controls showInteractive={false} />
@@ -1417,7 +1541,11 @@ function loadWorldviewDraft(project) {
 }
 
 function normalizeWorldviewDraft(project, draft) {
-  const sourceNodes = draft.nodes?.length ? draft.nodes : createInitialNodes(project)
+  const sourceNodes = applyAdaptiveCatalogLayout(
+    draft.nodes?.length ? draft.nodes : createInitialNodes(project),
+    project
+  )
+    .filter((node) => !isDeprecatedWorldviewNode(node))
   const sourceEdges = draft.edges?.length ? draft.edges : createInitialEdges()
   const parentByEdge = new Map()
 
@@ -1442,6 +1570,50 @@ function normalizeWorldviewDraft(project, draft) {
     selectedNodeId: nodeIds.has(draft.selectedNodeId) ? draft.selectedNodeId : 'root',
     archivedEntries: draft.archivedEntries || []
   }
+}
+
+function isDeprecatedWorldviewNode(node) {
+  return deprecatedWorldviewNodeIds.has(node.id) || deprecatedWorldviewNodeIdPattern.test(node.id)
+}
+
+function applyAdaptiveCatalogLayout(nodes) {
+  const layout = createSystemCatalogLayout()
+  const nodesById = new Map(nodes.map((node) => [node.id, node]))
+  return nodes.map((node) => {
+    const position = layout.positions.get(node.id)
+    if (position) {
+      return {
+        ...node,
+        position
+      }
+    }
+
+    const anchor = findCatalogLayoutAnchor(node, nodesById, layout.positions)
+    if (!anchor) return node
+
+    const oldAnchorPosition = nodesById.get(anchor.id)?.position
+    if (!oldAnchorPosition) return node
+
+    return {
+      ...node,
+      position: {
+        x: node.position.x + anchor.position.x - oldAnchorPosition.x,
+        y: node.position.y + anchor.position.y - oldAnchorPosition.y
+      }
+    }
+  })
+}
+
+function findCatalogLayoutAnchor(node, nodesById, positions) {
+  let parentId = node.data?.parentId
+  while (parentId) {
+    const position = positions.get(parentId)
+    if (position) {
+      return { id: parentId, position }
+    }
+    parentId = nodesById.get(parentId)?.data?.parentId
+  }
+  return null
 }
 
 function normalizeWorldviewNode(node, parentByEdge) {
@@ -1495,13 +1667,57 @@ function normalizeWorldviewEdge(edge, nodesById) {
   }
 }
 
+function createSystemCatalogLayout() {
+  const positions = new Map()
+  const sideHeights = {}
+
+  ;['left', 'right'].forEach((side) => {
+    let nextTop = catalogLayoutConfig.startY
+    systemCatalog
+      .filter((group) => group.side === side)
+      .forEach((group) => {
+        const moduleCount = Math.max(group.modules.length, 1)
+        const moduleBlockHeight = (moduleCount - 1) * catalogLayoutConfig.moduleSpacing
+        const groupHeight = Math.max(
+          catalogLayoutConfig.groupMinHeight,
+          moduleBlockHeight + catalogLayoutConfig.childYSpacing
+        )
+        const groupY = nextTop + groupHeight / 2
+        const groupX = side === 'left' ? catalogLayoutConfig.leftX : catalogLayoutConfig.rightX
+        const moduleX = groupX + (side === 'left' ? -catalogLayoutConfig.moduleXOffset : catalogLayoutConfig.moduleXOffset)
+        const firstModuleY = groupY - moduleBlockHeight / 2
+
+        positions.set(group.id, { x: groupX, y: groupY })
+        group.modules.forEach((_, index) => {
+          positions.set(`${group.id}-${index}`, {
+            x: moduleX,
+            y: firstModuleY + index * catalogLayoutConfig.moduleSpacing
+          })
+        })
+
+        nextTop += groupHeight + catalogLayoutConfig.groupGap
+      })
+
+    sideHeights[side] = nextTop - catalogLayoutConfig.groupGap + catalogLayoutConfig.startY
+  })
+
+  const canvasCenterY = Math.max(sideHeights.left || 0, sideHeights.right || 0) / 2
+  positions.set('root', {
+    x: catalogLayoutConfig.rootX,
+    y: Math.max(360, canvasCenterY)
+  })
+
+  return { positions }
+}
+
 function createInitialNodes(project) {
   const worldName = project.worldName || project.name
+  const layout = createSystemCatalogLayout()
   const nodes = [
     {
       id: 'root',
       type: 'worldNode',
-      position: { x: 520, y: 300 },
+      position: layout.positions.get('root'),
       deletable: false,
       data: {
         title: worldName,
@@ -1527,11 +1743,11 @@ function createInitialNodes(project) {
   ]
 
   systemCatalog.forEach((group) => {
-    const x = group.side === 'left' ? 120 : 920
+    const groupPosition = layout.positions.get(group.id)
     nodes.push({
       id: group.id,
       type: 'worldNode',
-      position: { x, y: group.y },
+      position: groupPosition,
       deletable: false,
       data: {
         title: group.title,
@@ -1559,10 +1775,7 @@ function createInitialNodes(project) {
       nodes.push({
         id: `${group.id}-${index}`,
         type: 'worldNode',
-        position: {
-          x: group.side === 'left' ? x - 280 : x + 280,
-          y: group.y + index * 78 - 28
-        },
+        position: layout.positions.get(`${group.id}-${index}`),
         deletable: false,
         data: {
           title: moduleTitle,
@@ -1623,6 +1836,30 @@ function getAttachableParent(selectedNode, nodes) {
     return nodes.find((node) => node.id === selectedNode?.data.parentId) || nodes.find((node) => node.id === 'root') || nodes[0]
   }
   return selectedNode
+}
+
+function getNextChildNodePosition(parent, nodes, type = 'worldNode') {
+  const siblings = nodes.filter((node) => node.data?.parentId === parent.id)
+  const isLeftBranch = parent.id !== 'root' && parent.position.x < catalogLayoutConfig.rootX
+  const direction = isLeftBranch ? -1 : 1
+  const xOffset = type === 'note'
+    ? catalogLayoutConfig.childXOffset * 0.72
+    : catalogLayoutConfig.childXOffset
+  const ySpacing = type === 'note'
+    ? catalogLayoutConfig.noteYSpacing
+    : catalogLayoutConfig.childYSpacing
+
+  const siblingYs = siblings
+    .map((node) => node.position?.y)
+    .filter((y) => Number.isFinite(y))
+  const y = siblingYs.length > 0
+    ? Math.max(...siblingYs) + ySpacing
+    : parent.position.y
+
+  return {
+    x: parent.position.x + direction * xOffset,
+    y
+  }
 }
 
 function hasNodeChildren(nodes, nodeId) {

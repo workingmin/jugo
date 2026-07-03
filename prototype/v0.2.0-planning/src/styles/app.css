@@ -83,19 +83,24 @@ body,
 }
 
 .worldview-content {
+  height: calc(100vh - var(--height-topbar));
   min-height: calc(100vh - var(--height-topbar));
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   border-width: 0;
+  scrollbar-gutter: stable;
 }
 
 .world-map-shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  min-height: calc(100vh - var(--height-topbar));
+  min-height: max(calc(100vh - var(--height-topbar)), 1840px);
 }
 
 .world-map-toolbar,
 .world-map-statusbar {
+  position: sticky;
+  z-index: 12;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -105,12 +110,17 @@ body,
   background: var(--color-bg-surface);
 }
 
+.world-map-toolbar {
+  top: 0;
+}
+
 .world-map-toolbar button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
 .world-map-statusbar {
+  bottom: 0;
   border-top: 1px solid var(--color-border);
   border-bottom: 0;
   color: var(--color-text-secondary);
@@ -129,7 +139,7 @@ body,
 }
 
 .world-map-canvas {
-  min-height: 0;
+  min-height: 1660px;
   background:
     linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px) 0 0 / 52px 100%,
     var(--color-bg-canvas);
@@ -400,11 +410,11 @@ body,
   }
 
   .world-map-shell {
-    min-height: 560px;
+    min-height: 1320px;
   }
 
   .world-map-canvas {
-    min-height: 560px;
+    min-height: 1120px;
   }
 
   .knowledge-grid {
