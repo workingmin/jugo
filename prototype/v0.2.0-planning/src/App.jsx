@@ -115,6 +115,8 @@ const defaultEdgeOptions = {
   }
 }
 
+const aiSessionEndpoint = import.meta.env.VITE_JUGO_AI_SESSION_URL || '/jugo-ai/session'
+
 export function App() {
   const isProjectPage = window.location.pathname.endsWith('/project.html') || window.location.pathname.endsWith('project.html')
 
@@ -391,13 +393,40 @@ function validateProjectInfoForm(form) {
 }
 
 function updateWorldviewRootTitle(draft, worldName) {
+  return updateWorldviewRootNode(draft, { title: worldName })
+}
+
+function updateWorldviewRootNode(draft, patch) {
   return {
     ...draft,
     nodes: draft.nodes.map((node) => (
       node.id === 'root'
-        ? { ...node, data: { ...node.data, title: worldName } }
+        ? {
+            ...node,
+            data: {
+              ...node.data,
+              ...(patch.title ? { title: patch.title } : {}),
+              ...(patch.summary ? { summary: patch.summary } : {})
+            }
+          }
         : node
     ))
+  }
+}
+
+function getWorldviewAgentContext(draft) {
+  const rootNode = draft.nodes.find((node) => node.id === 'root')
+  return {
+    activeSection: draft.activeSection,
+    selectedNodeId: draft.selectedNodeId,
+    root: rootNode
+      ? {
+          title: rootNode.data.title,
+          summary: rootNode.data.summary,
+          syncStatus: rootNode.data.syncStatus
+        }
+      : null,
+    nodeCount: draft.nodes.length
   }
 }
 
@@ -438,6 +467,15 @@ function ProjectWorkspace() {
   const [projectInfoTouched, setProjectInfoTouched] = useState({})
   const projectInfoErrors = validateProjectInfoForm(projectInfoForm)
   const canSaveProjectInfo = Object.keys(projectInfoErrors).length === 0
+  const [isAiAssistantOpen, setAiAssistantOpen] = useState(false)
+  const [aiMessages, setAiMessages] = useState(() => ([
+    {
+      role: 'assistant',
+      content: '我是项目编辑 AI 助手。你可以让我修改项目名称、世界名称、切换视图，或更新世界观根节点摘要。'
+    }
+  ]))
+  const [aiInput, setAiInput] = useState('')
+  const [aiPending, setAiPending] = useState(false)
 
   const allowedViews = getAllowedViews(project)
 
@@ -500,17 +538,11 @@ function ProjectWorkspace() {
     setProjectInfoTouched((current) => ({ ...current, [field]: true }))
   }
 
-  function submitProjectInfo(event) {
-    event.preventDefault()
-    const nextErrors = validateProjectInfoForm(projectInfoForm)
-    setProjectInfoTouched({ projectName: true, worldName: true })
-
-    if (Object.keys(nextErrors).length > 0) return
-
+  function applyProjectInfoPatch(patch) {
     const nextProject = {
       ...project,
-      name: projectInfoForm.projectName.trim(),
-      worldName: projectInfoForm.worldName.trim(),
+      name: patch.projectName?.trim() || project.name,
+      worldName: patch.worldName?.trim() || project.worldName,
       updatedAt: formatProjectTimestamp(new Date())
     }
 
@@ -518,8 +550,121 @@ function ProjectWorkspace() {
     saveLocalProject(nextProject)
     setWorldviewDraft((current) => updateWorldviewRootTitle(current, nextProject.worldName))
     updateStoredProjectDraft(nextProject)
+    return nextProject
+  }
+
+  function submitProjectInfo(event) {
+    event.preventDefault()
+    const nextErrors = validateProjectInfoForm(projectInfoForm)
+    setProjectInfoTouched({ projectName: true, worldName: true })
+
+    if (Object.keys(nextErrors).length > 0) return
+
+    applyProjectInfoPatch({
+      projectName: projectInfoForm.projectName,
+      worldName: projectInfoForm.worldName
+    })
     setSaveStatus('项目信息已更新')
     setProjectInfoOpen(false)
+  }
+
+  function openAiAssistant() {
+    setAiAssistantOpen(true)
+  }
+
+  function closeAiAssistant() {
+    setAiAssistantOpen(false)
+  }
+
+  async function sendAiMessage(event) {
+    event.preventDefault()
+    const content = aiInput.trim()
+    if (!content || aiPending) return
+
+    const nextMessages = [...aiMessages, { role: 'user', content }]
+    setAiMessages(nextMessages)
+    setAiInput('')
+    setAiPending(true)
+
+    try {
+      const response = await fetch(aiSessionEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project: {
+            id: project.id,
+            name: project.name,
+            worldName: project.worldName,
+            type: project.type,
+            activeView
+          },
+          allowedViews,
+          worldview: getWorldviewAgentContext(worldviewDraft),
+          messages: nextMessages
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`AI 会话服务返回 ${response.status}`)
+      }
+
+      const result = await response.json()
+      const actionSummary = applyAiAgentActions(result.actions || [])
+      setAiMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: actionSummary ? `${result.reply}\n${actionSummary}` : result.reply
+        }
+      ])
+    } catch (error) {
+      setAiMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: `AI 会话服务暂不可用：${error.message}`
+        }
+      ])
+    } finally {
+      setAiPending(false)
+    }
+  }
+
+  function applyAiAgentActions(actions) {
+    const applied = []
+
+    actions.forEach((action) => {
+      if (action.type === 'update_project_info') {
+        const patch = {
+          projectName: typeof action.projectName === 'string' ? action.projectName : '',
+          worldName: typeof action.worldName === 'string' ? action.worldName : ''
+        }
+        if (patch.projectName.trim() || patch.worldName.trim()) {
+          applyProjectInfoPatch(patch)
+          applied.push('已更新项目信息')
+        }
+      }
+
+      if (action.type === 'switch_view' && allowedViews.includes(action.view)) {
+        setActiveView(action.view)
+        applied.push(`已切换到${viewLabels[action.view]}`)
+      }
+
+      if (action.type === 'update_worldview_root') {
+        const title = typeof action.title === 'string' ? action.title.trim() : ''
+        const summary = typeof action.summary === 'string' ? action.summary.trim() : ''
+        if (title || summary) {
+          setWorldviewDraft((current) => updateWorldviewRootNode(current, { title, summary }))
+          applied.push('已更新世界观根节点')
+        }
+      }
+    })
+
+    if (applied.length > 0) {
+      setSaveStatus('AI 助手已执行修改')
+    }
+
+    return applied.length > 0 ? `执行结果：${applied.join('，')}。` : ''
   }
 
   return (
@@ -552,11 +697,16 @@ function ProjectWorkspace() {
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
-            <button className="project-tool-button" type="button" onClick={() => setSaveStatus('AI 助手将在后续版本接入')} aria-label="AI 助手">
+            <button className="project-tool-button" type="button" onClick={openAiAssistant} aria-label="AI 助手">
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3l1.2 4.1L17 8.4l-3.8 1.3L12 14l-1.2-4.3L7 8.4l3.8-1.3L12 3Z"></path>
-                <path d="M5.5 13l.7 2.2 2.1.8-2.1.7-.7 2.3-.7-2.3-2.1-.7 2.1-.8.7-2.2Z"></path>
-                <path d="M18.5 14l.6 1.8 1.7.7-1.7.6-.6 1.9-.6-1.9-1.7-.6 1.7-.7.6-1.8Z"></path>
+                <path d="M12 3v3"></path>
+                <circle cx="12" cy="3" r="1"></circle>
+                <rect x="5" y="7" width="14" height="12" rx="4"></rect>
+                <path d="M9 13h.01"></path>
+                <path d="M15 13h.01"></path>
+                <path d="M9.5 16h5"></path>
+                <path d="M3 12h2"></path>
+                <path d="M19 12h2"></path>
               </svg>
             </button>
           </div>
@@ -633,6 +783,45 @@ function ProjectWorkspace() {
               <button className="secondary-button compact" type="button" onClick={closeProjectInfoModal}>取消</button>
               <button className="primary-button compact" type="submit" disabled={!canSaveProjectInfo}>保存设置</button>
             </footer>
+          </form>
+        </div>
+      </div>
+      )}
+
+      {isAiAssistantOpen && (
+      <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="aiAssistantTitle">
+        <div className="modal ai-assistant-modal">
+          <header className="modal-header">
+            <div>
+              <p className="eyebrow">AI 助手</p>
+              <h2 id="aiAssistantTitle">项目编辑会话</h2>
+            </div>
+            <button className="icon-only" type="button" onClick={closeAiAssistant} aria-label="关闭">×</button>
+          </header>
+
+          <div className="ai-chat-log" aria-live="polite">
+            {aiMessages.map((message, index) => (
+              <article className={`ai-chat-message is-${message.role}`} key={`${message.role}-${index}`}>
+                <span>{message.role === 'user' ? '你' : 'AI 助手'}</span>
+                <p>{message.content}</p>
+              </article>
+            ))}
+            {aiPending && (
+              <article className="ai-chat-message is-assistant">
+                <span>AI 助手</span>
+                <p>正在分析项目上下文...</p>
+              </article>
+            )}
+          </div>
+
+          <form className="ai-chat-composer" onSubmit={sendAiMessage}>
+            <textarea
+              value={aiInput}
+              onChange={(event) => setAiInput(event.target.value)}
+              placeholder="例如：把项目名称改为《极夜航线：重启》，并切换到世界观。"
+              rows={3}
+            />
+            <button className="primary-button compact" type="submit" disabled={!aiInput.trim() || aiPending}>发送</button>
           </form>
         </div>
       </div>

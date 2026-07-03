@@ -6,7 +6,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "check": "vite build"
+    "check": "vite build",
+    "ai:server": "node server/ai-session-server.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.1",

@@ -78,6 +78,20 @@ project.html
 npm run check
 ```
 
+AI 会话服务：
+
+```bash
+cp .env.ai.example .env.ai.local
+# 填写 JUGO_AI_OPENAI_API_KEY / JUGO_AI_BASE_URL / JUGO_AI_MODEL
+JUGO_AI_ENV_FILE=.env.ai.local npm run ai:server
+```
+
+如果未配置真实模型 key，服务会自动使用本地 fallback agent，仍可演示“通过会话指令修改项目名称、世界名称、切换视图、更新世界观根节点摘要”的基础闭环。前端默认请求：
+
+```text
+/jugo-ai/session
+```
+
 本地开发：
 
 ```bash
@@ -123,4 +137,10 @@ Nginx vhost：
 
 ```text
 /usr/local/nginx/conf/vhost/devh.lingxi.fyi.conf.bak-cache-20260703
+```
+
+2026-07-03 为项目编辑页 AI 助手增加会话服务代理：
+
+```text
+/jugo-ai/ -> http://127.0.0.1:18082/
 ```
