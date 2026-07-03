@@ -39,7 +39,8 @@
 - 使用 mock 数据表达世界观、分支、时序和节拍之间的联动。
 - 使用日间专业浅色模式和夜间创作深色模式两套全局主题。
 - 不复用旧 `web-prototype/` 的小说 / 剧本编辑器页面作为新版本入口。
-- 如后续需要工程化实现，应在本目录内独立初始化，不覆盖旧原型。
+- 当前目录已调整为 React + Vite 工程，保留 `index.html` 和 `project.html` 两个多页入口。
+- 世界观思维导图主画布使用 React Flow 官方 `@xyflow/react` 包实现。
 
 主题设计文档：[../../docs/refactor/new-project/v0.2.0-planning/web-prototype-theme-design.md](../../docs/refactor/new-project/v0.2.0-planning/web-prototype-theme-design.md)
 
@@ -47,10 +48,11 @@
 
 ## 当前可运行页面
 
-项目管理首页已实现为静态页面：
+项目管理首页和项目编辑页已实现为 Vite 多页 React 原型：
 
 ```text
 index.html
+project.html
 ```
 
 当前能力：
@@ -63,7 +65,9 @@ index.html
 - 打开线性单结局项目时，默认进入矩阵时序页面，顶部仅保留「世界观」「矩阵时序」切换。
 - 打开多分支多结局项目时，默认进入分支树页面，顶部仅保留「世界观」「分支树」切换。
 - 项目编辑页左上角使用「<」返回项目管理页面，并在其后显示项目标题。
-- 项目编辑页右上角提供「保存」按钮，当前 demo 使用 localStorage 模拟保存世界观草稿。
+- 项目编辑页右上角提供「保存」按钮，当前 demo 使用 localStorage 模拟保存 React Flow nodes / edges、百科同步结果和世界观草稿。
+- 世界观页采用左侧「思维导图 / 百科仓库」导航 + 右侧内容区，思维导图页使用 React Flow 呈现世界观主画布。
+- 百科仓库由思维导图节点派生生成，展示系统目录、模块条目和用户删除节点后的废弃归档。
 - 当前可运行 demo 不提供节拍板作为项目编辑页主内容区入口，单场细化保留为后续正式版下钻能力。
 
 本阶段不接真实后端，按钮操作使用前端模拟反馈。
@@ -72,6 +76,19 @@ index.html
 
 ```bash
 npm run check
+```
+
+本地开发：
+
+```bash
+npm install
+npm run dev
+```
+
+生产构建：
+
+```bash
+npm run build
 ```
 
 ## 当前部署
@@ -98,4 +115,12 @@ Nginx vhost：
 
 ```text
 /usr/local/nginx/conf/vhost/devh.lingxi.fyi.conf.bak-jugo-v020-20260701
+```
+
+当前 Nginx 对 `index.html`、`project.html` 设置 `Cache-Control: no-cache, no-store, must-revalidate`，避免浏览器继续使用旧 HTML 指向旧 Vite 资源；对 `/assets/` 下的哈希构建产物设置 `Cache-Control: public, max-age=31536000, immutable`。
+
+2026-07-03 因世界观页 React Flow 更新后浏览器仍命中旧页面资源，新增缓存规则并备份：
+
+```text
+/usr/local/nginx/conf/vhost/devh.lingxi.fyi.conf.bak-cache-20260703
 ```

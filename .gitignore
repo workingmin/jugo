@@ -28,6 +28,7 @@ lerna-debug.log*
 /frontend/dist/
 /web-prototype/build/
 /web-prototype/dist/
+/prototype/v0.2.0-planning/dist/
 *.local
 
 # Environment variables

@@ -4,81 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JUGO v0.2.0 项目管理首页</title>
-    <script>
-      const storageResetKey = 'jugo-dashboard-sidebar-empty-reset-20260702'
-      if (localStorage.getItem(storageResetKey) !== 'done') {
-        localStorage.clear()
-        localStorage.setItem(storageResetKey, 'done')
-      }
-      const savedTheme = localStorage.getItem('jugo-theme')
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      document.documentElement.dataset.theme = savedTheme || (prefersDark ? 'dark' : 'light')
-    </script>
-    <link rel="stylesheet" href="./src/styles/theme.css?v=20260702-grid" />
-    <link rel="stylesheet" href="./src/styles/project-dashboard.css?v=20260702-grid" />
   </head>
   <body>
-    <div class="dashboard-shell">
-      <aside class="dashboard-sidebar" aria-label="项目管理导航">
-        <div class="sidebar-head">
-          <a class="brand" href="./" aria-label="JUGO 项目首页">
-            <span class="brand-mark">J</span>
-            <span>
-              <strong>JUGO</strong>
-              <small>v0.2.0-planning</small>
-            </span>
-          </a>
-          <button class="icon-button" type="button" id="themeToggle" aria-label="切换主题">
-            <span class="theme-icon" aria-hidden="true">☼</span>
-            <span class="theme-label">日间</span>
-          </button>
-        </div>
-
-        <nav class="sidebar-nav" aria-label="主导航">
-          <a class="sidebar-link is-active" href="./">项目</a>
-          <button class="sidebar-link" type="button" data-toast="帮助中心将在需求评审稿确认后接入">帮助中心</button>
-        </nav>
-      </aside>
-
-      <main class="dashboard-main">
-        <section class="empty-workspace" aria-label="空白项目引导">
-          <div class="empty-workspace-content">
-            <h1>开始创作你的小说 / 互动剧本</h1>
-            <p>选择标准化模板后，系统将初始化对应的世界观表单、评审画布和节拍结构。</p>
-            <button class="primary-button large" type="button" data-open-create>新建项目</button>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <div class="modal-backdrop is-hidden" id="createModal" role="dialog" aria-modal="true" aria-labelledby="createTitle">
-      <div class="modal">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">新建项目</p>
-            <h2 id="createTitle">选择创作模板</h2>
-          </div>
-          <button class="icon-only" type="button" data-close-modal aria-label="关闭">×</button>
-        </header>
-        <div class="template-grid">
-          <button class="template-card" type="button" data-template="linear">
-            <span class="template-type">模板 1</span>
-            <strong>线性单结局</strong>
-            <p>适合影视、网文、短剧等线性叙事。自动隐藏分支树，仅保留世界观、矩阵时序和节拍板。</p>
-            <span class="template-flow">世界观 → 矩阵时序 → 节拍板</span>
-          </button>
-          <button class="template-card" type="button" data-template="branching">
-            <span class="template-type accent">模板 2</span>
-            <strong>多分支多结局</strong>
-            <p>适合互动小说、游戏叙事和多结局剧本。开放分支树、单分支筛选和任务分配。</p>
-            <span class="template-flow">世界观 → 分支树 → 矩阵时序 → 节拍板</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <script type="module" src="./src/main.js?v=20260702-grid"></script>
+    <div id="root"></div>
+    <script type="module" src="./src/main.jsx"></script>
   </body>
 </html>

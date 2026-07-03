@@ -1,0 +1,418 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.large {
+  min-height: 44px;
+  padding: 0 20px;
+}
+
+.workspace--worldview {
+  width: 100%;
+  max-width: none;
+  min-height: calc(100vh - var(--height-topbar));
+  margin: 0;
+  padding: 0;
+}
+
+.worldview-workbench {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100vh - var(--height-topbar));
+}
+
+.worldview-nav,
+.worldview-content {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+}
+
+.worldview-nav {
+  position: sticky;
+  top: var(--height-topbar);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  align-self: start;
+  height: calc(100vh - var(--height-topbar));
+  overflow: auto;
+  padding: 14px;
+  border-width: 0 1px 0 0;
+}
+
+.worldview-nav-primary,
+.worldview-nav-groups button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 800;
+  text-align: left;
+}
+
+.worldview-nav-primary.is-active,
+.worldview-nav-primary:hover,
+.worldview-nav-groups button:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.worldview-nav-groups {
+  display: grid;
+  gap: var(--gap-xs);
+  margin-top: var(--gap-md);
+  padding-top: var(--gap-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.worldview-nav-groups span {
+  width: 20px;
+  color: var(--color-text-muted);
+}
+
+.worldview-content {
+  min-height: calc(100vh - var(--height-topbar));
+  overflow: hidden;
+  border-width: 0;
+}
+
+.world-map-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: calc(100vh - var(--height-topbar));
+}
+
+.world-map-toolbar,
+.world-map-statusbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-surface);
+}
+
+.world-map-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.world-map-statusbar {
+  border-top: 1px solid var(--color-border);
+  border-bottom: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.world-map-statusbar span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.world-map-canvas {
+  min-height: 0;
+  background:
+    linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px) 0 0 / 52px 100%,
+    var(--color-bg-canvas);
+}
+
+.world-map-canvas .react-flow {
+  background: transparent;
+}
+
+.world-map-panel {
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  box-shadow: var(--shadow-panel);
+}
+
+.world-node {
+  width: 200px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-panel);
+}
+
+.note-node {
+  width: 188px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 52%, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg-surface));
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-panel);
+}
+
+.world-node.is-selected,
+.note-node.is-selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft), var(--shadow-panel);
+}
+
+.world-node.is-locked {
+  border-left-color: var(--color-accent);
+}
+
+.world-node-head,
+.note-node-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.world-node-icon,
+.note-node-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
+.note-node-icon {
+  background: color-mix(in srgb, var(--color-accent) 22%, var(--color-bg-surface));
+  color: var(--color-accent);
+}
+
+.world-node strong,
+.note-node strong {
+  overflow: hidden;
+  flex: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-node-lock {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.node-expand-button {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.node-expand-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.world-node p,
+.note-node p {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 40px;
+  margin: 10px 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.note-node p {
+  min-height: 54px;
+}
+
+.world-node-sync {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.world-node-sync span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-node footer,
+.note-node footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.world-node .react-flow__handle,
+.note-node .react-flow__handle {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--color-bg-surface);
+  background: var(--color-primary);
+}
+
+.note-node .react-flow__handle {
+  background: var(--color-accent);
+}
+
+.knowledge-repository {
+  display: grid;
+  align-content: start;
+  gap: var(--gap-lg);
+  min-height: calc(100vh - var(--height-topbar));
+  overflow: auto;
+  padding: 18px;
+}
+
+.knowledge-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-lg);
+}
+
+.knowledge-head h2 {
+  margin: 4px 0 0;
+}
+
+.knowledge-sync-badge {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap-md);
+}
+
+.knowledge-card {
+  min-height: 190px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-app);
+}
+
+.knowledge-card span,
+.knowledge-card small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.knowledge-card strong,
+.knowledge-card p {
+  display: block;
+  margin: 8px 0 0;
+}
+
+.knowledge-card small {
+  display: block;
+  overflow: hidden;
+  margin-top: 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledge-card p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.archived-panel {
+  display: grid;
+  gap: var(--gap-sm);
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-subtle);
+}
+
+.archived-panel h3,
+.archived-panel p {
+  margin: 0;
+}
+
+.archived-panel p {
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 1180px) {
+  .worldview-workbench {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .knowledge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .worldview-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .worldview-nav {
+    position: static;
+    height: auto;
+    border-width: 0 0 1px;
+  }
+
+  .world-map-shell {
+    min-height: 560px;
+  }
+
+  .world-map-canvas {
+    min-height: 560px;
+  }
+
+  .knowledge-grid {
+    grid-template-columns: 1fr;
+  }
+}
