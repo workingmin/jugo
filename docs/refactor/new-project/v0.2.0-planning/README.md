@@ -26,6 +26,7 @@ docs/refactor/new-project/v0.2.0-planning/
 ├── project-entry-navigation-design.md         # 项目打开默认落点与历史位置策略
 ├── create-project-modal-design.md             # 新建项目弹窗页面设计
 ├── worldview-mindmap-knowledge-base-design.md # 世界观思维导图 + 百科仓库方案评估
+├── project-editor-ai-assistant-design.md      # 项目编辑页 AI 助手设计评审稿
 ├── product-scope.md              # 待创建：产品范围和非目标
 ├── user-scenarios.md             # 待创建：用户、场景、流程
 ├── domain-model.md               # 待创建：核心业务对象和关系
@@ -60,6 +61,8 @@ prototype/v0.2.0-planning/
 新建项目弹窗页面设计见 [create-project-modal-design.md](create-project-modal-design.md)。
 
 世界观编辑页思维导图 + 百科仓库方案评估见 [worldview-mindmap-knowledge-base-design.md](worldview-mindmap-knowledge-base-design.md)。
+
+项目编辑页 AI 助手设计评审稿见 [project-editor-ai-assistant-design.md](project-editor-ai-assistant-design.md)。
 
 ## 立项阶段产出顺序
 
