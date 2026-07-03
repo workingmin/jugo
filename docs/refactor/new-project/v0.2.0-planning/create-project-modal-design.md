@@ -19,50 +19,52 @@
 
 ## 页面结构
 
-```html
-<dialog class="create-project-modal" aria-labelledby="createProjectTitle">
-  <header class="modal-header">
-    <div>
-      <p class="modal-kicker">新建项目</p>
-      <h2 id="createProjectTitle">创建小说 / 互动剧本项目</h2>
-    </div>
-    <button aria-label="关闭新建项目弹窗">×</button>
-  </header>
+页面结构建议直接用可渲染 HTML 表达。Markdown Preview 会把下面内容渲染为弹窗原型，而不是代码块：
 
-  <form class="create-project-form">
-    <section aria-labelledby="projectNameLabel">
-      <label id="projectNameLabel" for="projectName">项目名称</label>
-      <input id="projectName" name="projectName" placeholder="例如：极夜航线" />
-      <p class="field-help">用于项目管理、团队协作和顶部项目标题。</p>
-    </section>
-
-    <section aria-labelledby="worldNameLabel">
-      <label id="worldNameLabel" for="worldName">世界名称</label>
-      <input id="worldName" name="worldName" placeholder="例如：极夜星域" />
-      <p class="field-help">用于世界观根节点、百科仓库和设定资料归档。</p>
-    </section>
-
-    <section aria-labelledby="templateLabel">
-      <h3 id="templateLabel">选择创作模板</h3>
-      <div class="template-options" role="radiogroup" aria-labelledby="templateLabel">
-        <button type="button" role="radio" aria-checked="false">
-          <strong>线性单结局</strong>
-          <span>世界观 + 矩阵时序</span>
-        </button>
-        <button type="button" role="radio" aria-checked="false">
-          <strong>多分支多结局</strong>
-          <span>世界观 + 分支树</span>
-        </button>
-      </div>
-    </section>
-
-    <footer class="modal-actions">
-      <button type="button">取消</button>
-      <button type="submit">创建项目</button>
-    </footer>
-  </form>
-</dialog>
-```
+<div style="border:1px solid #d0d7de; border-radius:12px; padding:24px; background:#f6f8fa; font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+<div style="max-width:820px; margin:0 auto; border:1px solid #d0d7de; border-radius:10px; background:#fff; box-shadow:0 18px 46px rgba(31,35,40,0.16); overflow:hidden;">
+<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:20px 22px 14px; border-bottom:1px solid #d0d7de;">
+<div>
+<div style="color:#8f3f5f; font-size:12px; font-weight:800;">新建项目</div>
+<h3 style="margin:6px 0 0; font-size:22px; line-height:1.3;">创建小说 / 互动剧本项目</h3>
+</div>
+<button type="button" aria-label="关闭新建项目弹窗" style="width:32px; height:32px; border:1px solid #d0d7de; border-radius:6px; background:#f6f8fa; color:#57606a; font-size:20px;">×</button>
+</div>
+<div style="display:grid; gap:18px; padding:22px;">
+<section style="display:grid; gap:8px;">
+<label for="projectNamePreview" style="font-weight:800;">项目名称</label>
+<input id="projectNamePreview" value="极夜航线" style="height:42px; padding:0 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; color:#24292f; font-size:14px;" />
+<div style="color:#57606a; font-size:12px;">用于项目管理、团队协作和顶部项目标题。</div>
+</section>
+<section style="display:grid; gap:8px;">
+<label for="worldNamePreview" style="font-weight:800;">世界名称</label>
+<input id="worldNamePreview" value="极夜星域" style="height:42px; padding:0 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; color:#24292f; font-size:14px;" />
+<div style="color:#57606a; font-size:12px;">用于世界观根节点、百科仓库和设定资料归档。</div>
+</section>
+<section style="display:grid; gap:12px;">
+<div style="font-weight:800;">选择创作模板</div>
+<div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px;">
+<button type="button" aria-pressed="true" style="display:grid; gap:8px; min-height:128px; padding:16px; border:2px solid #8f3f5f; border-radius:8px; background:#f4e6ec; color:#24292f; text-align:left;">
+<span style="display:inline-flex; width:max-content; padding:3px 8px; border-radius:4px; background:#fff; color:#8f3f5f; font-size:12px; font-weight:800;">模板 1</span>
+<strong style="font-size:16px;">线性单结局</strong>
+<span style="color:#57606a; font-size:13px;">适合网文、影视剧本、短剧。</span>
+<span style="color:#8f3f5f; font-size:12px; font-weight:800;">世界观 + 矩阵时序</span>
+</button>
+<button type="button" aria-pressed="false" style="display:grid; gap:8px; min-height:128px; padding:16px; border:1px solid #d0d7de; border-radius:8px; background:#fff; color:#24292f; text-align:left;">
+<span style="display:inline-flex; width:max-content; padding:3px 8px; border-radius:4px; background:#e7ecf5; color:#4f638d; font-size:12px; font-weight:800;">模板 2</span>
+<strong style="font-size:16px;">多分支多结局</strong>
+<span style="color:#57606a; font-size:13px;">适合互动小说、游戏剧情、多结局剧本。</span>
+<span style="color:#4f638d; font-size:12px; font-weight:800;">世界观 + 分支树</span>
+</button>
+</div>
+</section>
+</div>
+<div style="display:flex; justify-content:flex-end; gap:10px; padding:14px 22px 20px; border-top:1px solid #d0d7de; background:#f6f8fa;">
+<button type="button" style="min-width:78px; height:36px; border:1px solid #d0d7de; border-radius:6px; background:#fff; color:#57606a; font-weight:800;">取消</button>
+<button type="button" style="min-width:96px; height:36px; border:1px solid #8f3f5f; border-radius:6px; background:#8f3f5f; color:#fff; font-weight:800;">创建项目</button>
+</div>
+</div>
+</div>
 
 ## 字段定义
 
