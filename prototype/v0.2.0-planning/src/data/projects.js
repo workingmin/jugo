@@ -2,6 +2,7 @@ export const projects = [
   {
     id: 'linear-aurora',
     name: '极夜航线',
+    worldName: '极夜星域',
     type: 'linear',
     typeLabel: '线性单结局',
     owner: '林舟',
@@ -15,6 +16,7 @@ export const projects = [
   {
     id: 'branching-city',
     name: '雾城回声',
+    worldName: '雾城',
     type: 'branching',
     typeLabel: '多分支多结局',
     owner: '周曼',
@@ -28,6 +30,7 @@ export const projects = [
   {
     id: 'linear-court',
     name: '青铜王庭',
+    worldName: '青铜王庭',
     type: 'linear',
     typeLabel: '线性单结局',
     owner: '陈越',
@@ -41,6 +44,7 @@ export const projects = [
   {
     id: 'branching-summer',
     name: '夏日终局',
+    worldName: '夏日终局',
     type: 'branching',
     typeLabel: '多分支多结局',
     owner: '林舟',
@@ -53,8 +57,10 @@ export const projects = [
   }
 ]
 
+const localProjectsStorageKey = 'jugo-projects'
+
 export function getProjectById(projectId) {
-  return projects.find((project) => project.id === projectId) || projects[0]
+  return getLocalProjects().find((project) => project.id === projectId) || projects.find((project) => project.id === projectId) || projects[0]
 }
 
 export function getDefaultProjectView(project) {
@@ -63,4 +69,59 @@ export function getDefaultProjectView(project) {
 
 export function getDefaultProjectByType(type) {
   return projects.find((project) => project.type === type) || projects[0]
+}
+
+export function saveLocalProject(project) {
+  const localProjects = getLocalProjects().filter((item) => item.id !== project.id)
+  localStorage.setItem(localProjectsStorageKey, JSON.stringify([
+    normalizeProject(project),
+    ...localProjects
+  ]))
+}
+
+function getLocalProjects() {
+  if (typeof localStorage === 'undefined') return []
+
+  try {
+    const parsedProjects = JSON.parse(localStorage.getItem(localProjectsStorageKey) || '[]')
+    return Array.isArray(parsedProjects)
+      ? parsedProjects.map(normalizeProject).filter((project) => project.id && project.name)
+      : []
+  } catch {
+    localStorage.removeItem(localProjectsStorageKey)
+    return []
+  }
+}
+
+function normalizeProject(project) {
+  const type = project.type === 'branching' || project.templateType === 'branching' ? 'branching' : 'linear'
+  const name = String(project.name || project.projectName || '').trim()
+  const worldName = String(project.worldName || name).trim()
+
+  return {
+    id: String(project.id || ''),
+    name,
+    worldName,
+    type,
+    typeLabel: type === 'branching' ? '多分支多结局' : '线性单结局',
+    owner: project.owner || '本地演示',
+    updatedAt: project.updatedAt || formatLocalProjectTime(new Date()),
+    stage: type === 'branching' ? '分支树评审' : '矩阵时序评审',
+    tags: Array.isArray(project.tags) && project.tags.length
+      ? project.tags
+      : type === 'branching'
+        ? ['互动小说', '多结局', '本地演示']
+        : ['小说剧本', '线性结构', '本地演示'],
+    summary: project.summary || `${worldName} 已初始化世界观主画布和 ${type === 'branching' ? '分支树' : '矩阵时序'} 工作区。`,
+    health: project.health || '0 个待处理问题',
+    tracks: Array.isArray(project.tracks) && project.tracks.length
+      ? project.tracks
+      : type === 'branching'
+        ? ['主线', '关键选择', '结局线']
+        : ['主线', '人物线', '反派线']
+  }
+}
+
+function formatLocalProjectTime(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
