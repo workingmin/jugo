@@ -528,12 +528,6 @@ function ProjectWorkspace() {
         <div className="editor-topbar-left">
           <a className="back-button" href="./" aria-label="返回项目管理页面">&lt;</a>
           <span className="project-title-label">{project.name}</span>
-          <button className="project-settings-button" type="button" onClick={openProjectInfoModal} aria-label="编辑项目信息">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </button>
         </div>
 
         <nav className="editor-tabs" aria-label="项目主内容区">
@@ -551,6 +545,21 @@ function ProjectWorkspace() {
 
         <div className="editor-topbar-actions">
           <span className="save-status" aria-live="polite">{saveStatus}</span>
+          <div className="project-tool-group" aria-label="项目工具">
+            <button className="project-tool-button" type="button" onClick={openProjectInfoModal} aria-label="编辑项目信息">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button className="project-tool-button" type="button" onClick={() => setSaveStatus('AI 助手将在后续版本接入')} aria-label="AI 助手">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l1.2 4.1L17 8.4l-3.8 1.3L12 14l-1.2-4.3L7 8.4l3.8-1.3L12 3Z"></path>
+                <path d="M5.5 13l.7 2.2 2.1.8-2.1.7-.7 2.3-.7-2.3-2.1-.7 2.1-.8.7-2.2Z"></path>
+                <path d="M18.5 14l.6 1.8 1.7.7-1.7.6-.6 1.9-.6-1.9-1.7-.6 1.7-.7.6-1.8Z"></path>
+              </svg>
+            </button>
+          </div>
           <button className={`save-button ${savePulse ? 'is-saved' : ''}`} type="button" onClick={saveProject}>保存</button>
         </div>
       </header>
