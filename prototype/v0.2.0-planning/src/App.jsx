@@ -318,16 +318,38 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   const hiddenNodeIds = useMemo(() => getCollapsedNodeIds(draft.nodes), [draft.nodes])
   const syncableNodes = useMemo(() => getSyncableNodes(draft.nodes), [draft.nodes])
 
-  const toggleNodeExpand = useCallback((nodeId) => {
+  const openKnowledgeEntry = useCallback((nodeId) => {
+    const node = draft.nodes.find((item) => item.id === nodeId)
+    if (!node || !isKnowledgeSyncNode(node)) return
+
+    setSelectedNodeId(nodeId)
     onDraftChange((current) => ({
       ...current,
+      activeSection: 'knowledge',
+      selectedNodeId: nodeId,
+      activeKnowledgeEntryId: node.data.knowledgeEntryId || `entry-${nodeId}`
+    }))
+  }, [draft.nodes, onDraftChange])
+
+  const toggleNodeExpand = useCallback((nodeId) => {
+    const targetNode = draft.nodes.find((node) => node.id === nodeId)
+    const isCollapsing = targetNode?.data.expanded !== false
+    const hiddenByToggle = isCollapsing ? getDescendantIds(draft.nodes, nodeId) : []
+
+    if (hiddenByToggle.includes(selectedNodeId)) {
+      setSelectedNodeId(nodeId)
+    }
+
+    onDraftChange((current) => ({
+      ...current,
+      selectedNodeId: hiddenByToggle.includes(current.selectedNodeId) ? nodeId : current.selectedNodeId,
       nodes: current.nodes.map((node) => (
         node.id === nodeId
           ? { ...node, data: { ...node.data, expanded: node.data.expanded === false } }
           : node
       ))
     }))
-  }, [onDraftChange])
+  }, [draft.nodes, onDraftChange, selectedNodeId])
 
   const renderNodes = useMemo(() => draft.nodes.map((node) => {
     const hasChildren = hasNodeChildren(draft.nodes, node.id)
@@ -339,10 +361,13 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
         nodeId: node.id,
         hasChildren,
         collapsedChildrenCount: countDescendants(draft.nodes, node.id),
+        childCount: countDirectChildren(draft.nodes, node.id),
+        canOpenKnowledge: isKnowledgeSyncNode(node),
+        onOpenKnowledge: isKnowledgeSyncNode(node) ? openKnowledgeEntry : undefined,
         onToggleExpand: hasChildren ? toggleNodeExpand : undefined
       }
     }
-  }), [draft.nodes, hiddenNodeIds, toggleNodeExpand])
+  }), [draft.nodes, hiddenNodeIds, openKnowledgeEntry, toggleNodeExpand])
 
   const renderEdges = useMemo(() => draft.edges.map((edge) => ({
     ...edge,
@@ -608,7 +633,12 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
             </div>
           </div>
         ) : (
-          <KnowledgeRepository entries={knowledgeEntries} archivedEntries={draft.archivedEntries || []} syncResult={syncResult} />
+          <KnowledgeRepository
+            activeEntryId={draft.activeKnowledgeEntryId}
+            entries={knowledgeEntries}
+            archivedEntries={draft.archivedEntries || []}
+            syncResult={syncResult}
+          />
         )}
       </section>
     </section>
@@ -616,48 +646,57 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
 }
 
 function NodeHandles() {
-  return nodeHandlePositions.map((handle) => (
+  return nodeHandlePositions.flatMap((handle) => [
     <Handle
-      className={`node-handle node-handle-${handle.id}`}
+      className={`node-handle node-handle-${handle.id} node-handle-target`}
       id={handle.id}
-      key={handle.id}
+      key={`${handle.id}-target`}
+      position={handle.position}
+      type="target"
+    />,
+    <Handle
+      className={`node-handle node-handle-${handle.id} node-handle-source`}
+      id={handle.id}
+      key={`${handle.id}-source`}
       position={handle.position}
       type="source"
     />
-  ))
+  ])
 }
 
 function WorldNode({ data, selected }) {
   return (
     <div className={`world-node ${selected ? 'is-selected' : ''} ${data.locked ? 'is-locked' : ''}`}>
       <NodeHandles />
-      <div className="world-node-head">
-        <span className="world-node-icon">{data.icon}</span>
+      <div className="mindmap-node-row">
+        <span className="world-node-icon">{data.icon || '0'}</span>
         <strong>{data.title}</strong>
-        {data.locked && <span className="world-node-lock">固定</span>}
-        {data.hasChildren && (
-          <button
-            className="node-expand-button nodrag"
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation()
-              data.onToggleExpand?.(data.nodeId)
-            }}
-            aria-label={data.expanded === false ? '展开子级节点' : '折叠子级节点'}
-          >
-            {data.expanded === false ? `+${data.collapsedChildrenCount}` : '-'}
-          </button>
-        )}
+        <span className="mindmap-node-count">{data.childCount || 0}</span>
+        <button
+          className="node-action-button node-toggle-button nodrag"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            data.onToggleExpand?.(data.nodeId)
+          }}
+          disabled={!data.hasChildren}
+          aria-label={data.expanded === false ? '展开子级节点' : '隐藏子级节点'}
+        >
+          {data.expanded === false ? '+' : '-'}
+        </button>
+        <button
+          className="node-action-button node-enter-button nodrag"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            data.onOpenKnowledge?.(data.nodeId)
+          }}
+          disabled={!data.canOpenKnowledge}
+          aria-label="进入百科栏编辑"
+        >
+          →
+        </button>
       </div>
-      <p>{data.summary}</p>
-      <div className="world-node-sync">
-        <span>{data.knowledgeEntryId}</span>
-        <span>v{data.syncVersion || 0}</span>
-      </div>
-      <footer>
-        <span>{data.nodeType}</span>
-        <span>{getSyncLabel(data.syncStatus)}</span>
-      </footer>
     </div>
   )
 }
@@ -666,20 +705,36 @@ function NoteNode({ data, selected }) {
   return (
     <div className={`note-node ${selected ? 'is-selected' : ''}`}>
       <NodeHandles />
-      <div className="note-node-head">
-        <span className="note-node-icon">{data.icon}</span>
+      <div className="mindmap-node-row">
+        <span className="note-node-icon">{data.icon || '0'}</span>
         <strong>{data.title}</strong>
+        <span className="mindmap-node-count">{data.childCount || 0}</span>
+        <button
+          className="node-action-button node-toggle-button nodrag"
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            data.onToggleExpand?.(data.nodeId)
+          }}
+          disabled={!data.hasChildren}
+          aria-label={data.expanded === false ? '展开子级节点' : '隐藏子级节点'}
+        >
+          {data.expanded === false ? '+' : '-'}
+        </button>
+        <button
+          className="node-action-button node-enter-button nodrag"
+          type="button"
+          disabled
+          aria-label="便签不进入百科栏"
+        >
+          →
+        </button>
       </div>
-      <p>{data.summary}</p>
-      <footer>
-        <span>画布便签</span>
-        <span>{getSyncLabel(data.syncStatus)}</span>
-      </footer>
     </div>
   )
 }
 
-function KnowledgeRepository({ entries, archivedEntries, syncResult }) {
+function KnowledgeRepository({ activeEntryId, entries, archivedEntries, syncResult }) {
   return (
     <div className="knowledge-repository">
       <header className="knowledge-head">
@@ -695,7 +750,7 @@ function KnowledgeRepository({ entries, archivedEntries, syncResult }) {
       </header>
       <div className="knowledge-grid">
         {entries.map((entry) => (
-          <article className="knowledge-card" key={entry.id}>
+          <article className={`knowledge-card ${entry.id === activeEntryId ? 'is-active' : ''}`} key={entry.id}>
             <span>{entry.category}</span>
             <strong>{entry.title}</strong>
             <p>{entry.summary}</p>
@@ -1052,6 +1107,10 @@ function hasNodeChildren(nodes, nodeId) {
   return nodes.some((node) => node.data?.parentId === nodeId)
 }
 
+function countDirectChildren(nodes, nodeId) {
+  return nodes.filter((node) => node.data?.parentId === nodeId).length
+}
+
 function getDescendantIds(nodes, nodeId) {
   const childMap = createChildMap(nodes)
   const descendantIds = []
@@ -1176,7 +1235,7 @@ function markWorldviewSynced(draft, savedAt) {
 
 function createKnowledgeEntries(nodes) {
   return nodes
-    .filter((node) => node.id !== 'root' && isKnowledgeSyncNode(node))
+    .filter(isKnowledgeSyncNode)
     .map((node) => ({
       id: node.data.knowledgeEntryId || `entry-${node.id}`,
       title: node.data.title,

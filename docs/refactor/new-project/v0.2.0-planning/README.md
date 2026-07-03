@@ -24,6 +24,7 @@ docs/refactor/new-project/v0.2.0-planning/
 ├── web-prototype-demo-implementation-plan.md  # Web 原型 demo 实施计划
 ├── web-prototype-theme-design.md              # Web 原型日间 / 夜间双主题设计
 ├── project-entry-navigation-design.md         # 项目打开默认落点与历史位置策略
+├── create-project-modal-design.md             # 新建项目弹窗页面设计
 ├── worldview-mindmap-knowledge-base-design.md # 世界观思维导图 + 百科仓库方案评估
 ├── product-scope.md              # 待创建：产品范围和非目标
 ├── user-scenarios.md             # 待创建：用户、场景、流程
@@ -55,6 +56,8 @@ prototype/v0.2.0-planning/
 全局主题设计见 [web-prototype-theme-design.md](web-prototype-theme-design.md)。
 
 项目打开默认落点和历史位置策略见 [project-entry-navigation-design.md](project-entry-navigation-design.md)。
+
+新建项目弹窗页面设计见 [create-project-modal-design.md](create-project-modal-design.md)。
 
 世界观编辑页思维导图 + 百科仓库方案评估见 [worldview-mindmap-knowledge-base-design.md](worldview-mindmap-knowledge-base-design.md)。
 
