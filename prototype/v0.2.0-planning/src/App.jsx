@@ -5,10 +5,8 @@ import {
   applyNodeChanges,
   Background,
   ConnectionMode,
-  Controls,
   Handle,
   MarkerType,
-  MiniMap,
   Panel,
   Position,
   ReactFlow
@@ -957,25 +955,13 @@ function ProjectWorkspace() {
 
 function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   const [selectedNodeId, setSelectedNodeId] = useState(draft.selectedNodeId || 'root')
+  const [contextMenu, setContextMenu] = useState(null)
+  const [editingNode, setEditingNode] = useState(null)
   const selectedNode = draft.nodes.find((node) => node.id === selectedNodeId) || draft.nodes[0]
   const selectedHasChildren = selectedNode ? hasNodeChildren(draft.nodes, selectedNode.id) : false
-  const selectedExpanded = selectedNode?.data.expanded !== false
   const knowledgeEntries = useMemo(() => createKnowledgeEntries(draft.nodes), [draft.nodes])
   const hiddenNodeIds = useMemo(() => getCollapsedNodeIds(draft.nodes), [draft.nodes])
   const syncableNodes = useMemo(() => getSyncableNodes(draft.nodes), [draft.nodes])
-
-  const openKnowledgeEntry = useCallback((nodeId) => {
-    const node = draft.nodes.find((item) => item.id === nodeId)
-    if (!node || !isKnowledgeSyncNode(node)) return
-
-    setSelectedNodeId(nodeId)
-    onDraftChange((current) => ({
-      ...current,
-      activeSection: 'knowledge',
-      selectedNodeId: nodeId,
-      activeKnowledgeEntryId: node.data.knowledgeEntryId || `entry-${nodeId}`
-    }))
-  }, [draft.nodes, onDraftChange])
 
   const toggleNodeExpand = useCallback((nodeId) => {
     const targetNode = draft.nodes.find((node) => node.id === nodeId)
@@ -1006,14 +992,18 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
         ...node.data,
         nodeId: node.id,
         hasChildren,
-        collapsedChildrenCount: countDescendants(draft.nodes, node.id),
-        childCount: countDirectChildren(draft.nodes, node.id),
-        canOpenKnowledge: isKnowledgeSyncNode(node),
-        onOpenKnowledge: isKnowledgeSyncNode(node) ? openKnowledgeEntry : undefined,
+        isEditing: editingNode?.nodeId === node.id,
+        editTitle: editingNode?.nodeId === node.id ? editingNode.title : node.data.title,
+        onEditTitleChange: (title) => setEditingNode((current) => (
+          current?.nodeId === node.id ? { ...current, title } : current
+        )),
+        onCommitRename: commitRenameNode,
+        onCancelRename: cancelRenameNode,
+        onStartRename: startRenameNode,
         onToggleExpand: hasChildren ? toggleNodeExpand : undefined
       }
     }
-  }), [draft.nodes, hiddenNodeIds, openKnowledgeEntry, toggleNodeExpand])
+  }), [draft.nodes, hiddenNodeIds, editingNode, toggleNodeExpand])
 
   const renderEdges = useMemo(() => draft.edges.map((edge) => ({
     ...edge,
@@ -1047,11 +1037,24 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   }, [onDraftChange])
 
   function setSection(section) {
+    setContextMenu(null)
     onDraftChange((current) => ({ ...current, activeSection: section }))
   }
 
-  function addCustomNode() {
-    const parent = getAttachableParent(selectedNode, draft.nodes)
+  function selectNode(nodeId) {
+    setSelectedNodeId(nodeId)
+    onDraftChange((current) => ({ ...current, selectedNodeId: nodeId }))
+  }
+
+  function getNodeById(nodeId) {
+    return draft.nodes.find((node) => node.id === nodeId) || selectedNode
+  }
+
+  function addCustomNode(mode = 'child', nodeId = selectedNodeId) {
+    const baseNode = getNodeById(nodeId)
+    const parent = mode === 'sibling'
+      ? getSiblingParent(baseNode, draft.nodes)
+      : getAttachableParent(baseNode, draft.nodes)
     const customId = `custom-${Date.now()}`
     const position = getNextChildNodePosition(parent, draft.nodes)
     const customNode = {
@@ -1099,10 +1102,11 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       selectedNodeId: customId
     }))
     setSelectedNodeId(customId)
+    setContextMenu(null)
   }
 
-  function addNoteNode() {
-    const parent = getAttachableParent(selectedNode, draft.nodes)
+  function addNoteNode(nodeId = selectedNodeId) {
+    const parent = getAttachableParent(getNodeById(nodeId), draft.nodes)
     const noteId = `note-${Date.now()}`
     const position = getNextChildNodePosition(parent, draft.nodes, 'note')
     const noteNode = {
@@ -1152,23 +1156,28 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       selectedNodeId: noteId
     }))
     setSelectedNodeId(noteId)
+    setContextMenu(null)
   }
 
-  function clearFixedNode() {
-    if (!selectedNode?.data.locked) return
-    updateNode(selectedNode.id, {
+  function clearFixedNode(nodeId = selectedNodeId) {
+    const node = getNodeById(nodeId)
+    if (!node?.data.locked) return
+    updateNode(node.id, {
       summary: '固定业务节点已清空内容，目录节点保留以维持百科同步路径。',
       syncStatus: 'pending',
       count: 0
     })
+    setContextMenu(null)
   }
 
-  function enrichWithAi() {
-    if (!selectedNode) return
-    updateNode(selectedNode.id, {
-      summary: `${selectedNode.data.title}已生成百科字段建议，等待创作者确认后写入知识库。`,
+  function enrichWithAi(nodeId = selectedNodeId) {
+    const node = getNodeById(nodeId)
+    if (!node || !isKnowledgeSyncNode(node)) return
+    updateNode(node.id, {
+      summary: `${node.data.title}已生成百科字段建议，等待创作者确认后写入知识库。`,
       syncStatus: 'suggested'
     })
+    setContextMenu(null)
   }
 
   function updateNode(nodeId, patch) {
@@ -1182,9 +1191,10 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     }))
   }
 
-  function deleteCustomNode() {
-    if (!selectedNode || selectedNode.data.locked) return
-    const deletedIds = new Set([selectedNode.id, ...getDescendantIds(draft.nodes, selectedNode.id)])
+  function deleteCustomNode(nodeId = selectedNodeId) {
+    const node = getNodeById(nodeId)
+    if (!node || node.data.locked) return
+    const deletedIds = new Set([node.id, ...getDescendantIds(draft.nodes, node.id)])
     const deletedKnowledgeNodes = draft.nodes.filter((node) => deletedIds.has(node.id) && isKnowledgeSyncNode(node))
     onDraftChange((current) => ({
       ...current,
@@ -1203,7 +1213,93 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       selectedNodeId: 'root'
     }))
     setSelectedNodeId('root')
+    setContextMenu(null)
   }
+
+  function startRenameNode(nodeId = selectedNodeId) {
+    const node = getNodeById(nodeId)
+    if (!node) return
+    selectNode(node.id)
+    setEditingNode({
+      nodeId: node.id,
+      title: node.data.title || ''
+    })
+    setContextMenu(null)
+  }
+
+  function commitRenameNode() {
+    if (!editingNode) return
+    const node = draft.nodes.find((item) => item.id === editingNode.nodeId)
+    const title = editingNode.title.trim()
+    if (node && title && title !== node.data.title) {
+      updateNode(node.id, {
+        title,
+        ...(isKnowledgeSyncNode(node) ? { syncStatus: 'pending' } : {})
+      })
+    }
+    setEditingNode(null)
+  }
+
+  function cancelRenameNode() {
+    setEditingNode(null)
+  }
+
+  useEffect(() => {
+    if (draft.activeSection !== 'mindmap') return undefined
+
+    function handleMindmapShortcut(event) {
+      if (isEditableEventTarget(event.target)) return
+
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        addCustomNode('child')
+        return
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        addCustomNode('sibling')
+        return
+      }
+
+      if (event.key === 'F2') {
+        event.preventDefault()
+        startRenameNode()
+        return
+      }
+
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        event.preventDefault()
+        if (!selectedNode?.data.locked) {
+          deleteCustomNode()
+        }
+        return
+      }
+
+      if ((event.key === ' ' || event.key === 'Spacebar') && selectedHasChildren) {
+        event.preventDefault()
+        toggleNodeExpand(selectedNode.id)
+      }
+    }
+
+    window.addEventListener('keydown', handleMindmapShortcut)
+    return () => window.removeEventListener('keydown', handleMindmapShortcut)
+  }, [draft.activeSection, selectedNode, selectedHasChildren, selectedNodeId, editingNode, draft.nodes])
+
+  function openNodeContextMenu(event, node) {
+    event.preventDefault()
+    event.stopPropagation()
+    const menuWidth = 236
+    const menuHeight = 326
+    const x = Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8))
+    const y = Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8))
+    setContextMenu({ nodeId: node.id, x, y })
+    selectNode(node.id)
+  }
+
+  const contextNode = contextMenu
+    ? draft.nodes.find((node) => node.id === contextMenu.nodeId)
+    : null
 
   return (
     <section className="worldview-workbench" aria-label="世界观编辑">
@@ -1223,17 +1319,6 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       <section className="worldview-content">
         {draft.activeSection === 'mindmap' ? (
           <div className="world-map-shell">
-            <div className="world-map-toolbar">
-              <button className="secondary-button" type="button" onClick={addCustomNode}>新增节点</button>
-              <button className="secondary-button" type="button" onClick={addNoteNode}>添加便签</button>
-              <button className="secondary-button" type="button" onClick={() => selectedNode && toggleNodeExpand(selectedNode.id)} disabled={!selectedHasChildren}>
-                {selectedExpanded ? '折叠子级' : '展开子级'}
-              </button>
-              <button className="secondary-button" type="button" onClick={clearFixedNode} disabled={!selectedNode?.data.locked}>清空固定节点</button>
-              <button className="secondary-button" type="button" onClick={deleteCustomNode} disabled={!selectedNode || selectedNode.data.locked}>删除自增 / 便签</button>
-              <button className="primary-button" type="button" onClick={enrichWithAi} disabled={!selectedNode || !isKnowledgeSyncNode(selectedNode)}>AI 补全百科字段</button>
-            </div>
-
             <div className="world-map-canvas">
               <ReactFlow
                 nodes={renderNodes}
@@ -1245,9 +1330,16 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={(_, node) => {
-                  setSelectedNodeId(node.id)
-                  onDraftChange((current) => ({ ...current, selectedNodeId: node.id }))
+                  setContextMenu(null)
+                  selectNode(node.id)
                 }}
+                onNodeContextMenu={openNodeContextMenu}
+                onPaneClick={() => setContextMenu(null)}
+                onPaneContextMenu={(event) => {
+                  event.preventDefault()
+                  setContextMenu(null)
+                }}
+                nodesDraggable={false}
                 fitView
                 minZoom={0.35}
                 maxZoom={1.6}
@@ -1256,12 +1348,60 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                 zoomOnScroll={false}
               >
                 <Background color="var(--color-grid-line)" gap={28} />
-                <Controls showInteractive={false} />
-                <MiniMap pannable zoomable nodeStrokeWidth={3} />
                 <Panel className="world-map-panel" position="top-left">
                   世界观 0-1 主画布
                 </Panel>
               </ReactFlow>
+              {contextNode && (
+                <div
+                  className="mindmap-context-menu"
+                  style={{ left: contextMenu.x, top: contextMenu.y }}
+                  role="menu"
+                >
+                  <button type="button" role="menuitem" onClick={() => addCustomNode('child', contextNode.id)}>
+                    <span>新增子节点</span>
+                    <kbd>Tab</kbd>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => addCustomNode('sibling', contextNode.id)}>
+                    <span>新增同级节点</span>
+                    <kbd>Enter</kbd>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => addNoteNode(contextNode.id)}>
+                    <span>添加便签</span>
+                  </button>
+                  <button type="button" role="menuitem" onClick={() => startRenameNode(contextNode.id)}>
+                    <span>重命名</span>
+                    <kbd>F2</kbd>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => toggleNodeExpand(contextNode.id)}
+                    disabled={!hasNodeChildren(draft.nodes, contextNode.id)}
+                  >
+                    <span>{contextNode.data.expanded === false ? '展开子级' : '隐藏子级'}</span>
+                    <kbd>Space</kbd>
+                  </button>
+                  {contextNode.data.locked ? (
+                    <button type="button" role="menuitem" onClick={() => clearFixedNode(contextNode.id)}>
+                      <span>清空固定节点</span>
+                    </button>
+                  ) : (
+                    <button type="button" role="menuitem" onClick={() => deleteCustomNode(contextNode.id)}>
+                      <span>删除节点</span>
+                      <kbd>Del</kbd>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => enrichWithAi(contextNode.id)}
+                    disabled={!isKnowledgeSyncNode(contextNode)}
+                  >
+                    <span>AI 补全百科字段</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="world-map-statusbar">
@@ -1315,8 +1455,29 @@ function WorldNode({ data, selected }) {
       <NodeHandles />
       <div className="mindmap-node-row">
         <span className="world-node-icon">{data.icon || '0'}</span>
-        <strong>{data.title}</strong>
-        <span className="mindmap-node-count">{data.childCount || 0}</span>
+        {data.isEditing ? (
+          <input
+            className="node-title-input nodrag"
+            value={data.editTitle}
+            autoFocus
+            onChange={(event) => data.onEditTitleChange?.(event.target.value)}
+            onBlur={() => data.onCommitRename?.()}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                data.onCommitRename?.()
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                data.onCancelRename?.()
+              }
+            }}
+          />
+        ) : (
+          <strong onDoubleClick={() => data.onStartRename?.(data.nodeId)}>{data.title}</strong>
+        )}
         <button
           className="node-action-button node-toggle-button nodrag"
           type="button"
@@ -1328,18 +1489,6 @@ function WorldNode({ data, selected }) {
           aria-label={data.expanded === false ? '展开子级节点' : '隐藏子级节点'}
         >
           {data.expanded === false ? '+' : '-'}
-        </button>
-        <button
-          className="node-action-button node-enter-button nodrag"
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            data.onOpenKnowledge?.(data.nodeId)
-          }}
-          disabled={!data.canOpenKnowledge}
-          aria-label="进入百科栏编辑"
-        >
-          →
         </button>
       </div>
     </div>
@@ -1352,8 +1501,29 @@ function NoteNode({ data, selected }) {
       <NodeHandles />
       <div className="mindmap-node-row">
         <span className="note-node-icon">{data.icon || '0'}</span>
-        <strong>{data.title}</strong>
-        <span className="mindmap-node-count">{data.childCount || 0}</span>
+        {data.isEditing ? (
+          <input
+            className="node-title-input nodrag"
+            value={data.editTitle}
+            autoFocus
+            onChange={(event) => data.onEditTitleChange?.(event.target.value)}
+            onBlur={() => data.onCommitRename?.()}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                data.onCommitRename?.()
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                data.onCancelRename?.()
+              }
+            }}
+          />
+        ) : (
+          <strong onDoubleClick={() => data.onStartRename?.(data.nodeId)}>{data.title}</strong>
+        )}
         <button
           className="node-action-button node-toggle-button nodrag"
           type="button"
@@ -1365,14 +1535,6 @@ function NoteNode({ data, selected }) {
           aria-label={data.expanded === false ? '展开子级节点' : '隐藏子级节点'}
         >
           {data.expanded === false ? '+' : '-'}
-        </button>
-        <button
-          className="node-action-button node-enter-button nodrag"
-          type="button"
-          disabled
-          aria-label="便签不进入百科栏"
-        >
-          →
         </button>
       </div>
     </div>
@@ -1838,6 +2000,13 @@ function getAttachableParent(selectedNode, nodes) {
   return selectedNode
 }
 
+function getSiblingParent(selectedNode, nodes) {
+  if (!selectedNode || selectedNode.id === 'root') {
+    return nodes.find((node) => node.id === 'root') || nodes[0]
+  }
+  return nodes.find((node) => node.id === selectedNode.data?.parentId) || nodes.find((node) => node.id === 'root') || nodes[0]
+}
+
 function getNextChildNodePosition(parent, nodes, type = 'worldNode') {
   const siblings = nodes.filter((node) => node.data?.parentId === parent.id)
   const isLeftBranch = parent.id !== 'root' && parent.position.x < catalogLayoutConfig.rootX
@@ -1866,8 +2035,9 @@ function hasNodeChildren(nodes, nodeId) {
   return nodes.some((node) => node.data?.parentId === nodeId)
 }
 
-function countDirectChildren(nodes, nodeId) {
-  return nodes.filter((node) => node.data?.parentId === nodeId).length
+function isEditableEventTarget(target) {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
 }
 
 function getDescendantIds(nodes, nodeId) {
@@ -1883,10 +2053,6 @@ function getDescendantIds(nodes, nodeId) {
 
   collect(nodeId)
   return descendantIds
-}
-
-function countDescendants(nodes, nodeId) {
-  return getDescendantIds(nodes, nodeId).length
 }
 
 function getCollapsedNodeIds(nodes) {
