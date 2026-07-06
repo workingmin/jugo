@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   addEdge,
   applyEdgeChanges,
@@ -44,11 +44,11 @@ const systemCatalog = [
   },
   {
     id: 'relations',
-    title: '人物关系',
+    title: '人物档案',
     icon: '@',
     side: 'left',
-    summary: '维护核心人物、人物关系、关系变化和角色之间的牵引力。',
-    tags: ['人物关系', '人物']
+    summary: '维护核心人物档案、身份背景、人物弧光和角色基础设定。',
+    tags: ['人物档案', '人物']
   },
   {
     id: 'factions',
@@ -57,6 +57,14 @@ const systemCatalog = [
     side: 'left',
     summary: '整理组织、阵营、政治经济结构和阵营之间的利益位置。',
     tags: ['势力阵营', '组织']
+  },
+  {
+    id: 'relationship-network',
+    title: '关系网络',
+    icon: 'R',
+    side: 'left',
+    summary: '维护人物或势力之间的亲缘、师承、从属、合作、敌对、情感和动态关系。',
+    tags: ['关系网络', '人物关系', '势力关系']
   },
   {
     id: 'customs',
@@ -161,6 +169,11 @@ const nodeHandlePositions = [
 
 const defaultKnowledgeSyncFields = ['title', 'summary', 'nodeType', 'tags']
 const defaultRuleContent = '说明这条规则的触发条件、限制、代价和例外。'
+const defaultMapSummary = '双击打开地图编辑器，创作地图草图、地点、路线、区域和世界观标注。'
+
+const ExcalidrawEditor = lazy(() => import('@excalidraw/excalidraw').then((module) => ({
+  default: module.Excalidraw
+})))
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
@@ -1011,7 +1024,11 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   const [contextMenu, setContextMenu] = useState(null)
   const [editingNode, setEditingNode] = useState(null)
   const [isKnowledgeNavExpanded, setKnowledgeNavExpanded] = useState(true)
+  const [mapEditorNodeId, setMapEditorNodeId] = useState(null)
   const selectedNode = draft.nodes.find((node) => node.id === selectedNodeId) || draft.nodes[0]
+  const mapEditorNode = mapEditorNodeId
+    ? draft.nodes.find((node) => node.id === mapEditorNodeId && node.data?.nodeType === 'map')
+    : null
   const selectedHasChildren = selectedNode ? hasNodeChildren(draft.nodes, selectedNode.id) : false
   const knowledgeEntries = useMemo(() => createKnowledgeEntries(draft.nodes), [draft.nodes])
   const hiddenNodeIds = useMemo(() => getCollapsedNodeIds(draft.nodes), [draft.nodes])
@@ -1058,6 +1075,7 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
         onCommitRename: commitRenameNode,
         onCancelRename: cancelRenameNode,
         onStartRename: startRenameNode,
+        onOpenMapEditor: openMapEditor,
         onToggleRuleContent: toggleRuleContent,
         onToggleExpand: hasChildren ? toggleNodeExpand : undefined
       }
@@ -1117,30 +1135,48 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     const customId = `custom-${Date.now()}`
     const position = getNextChildNodePosition(parent, draft.nodes)
     const isRuleNode = parent.id === 'rules'
+    const isMapNode = parent.id === 'geography'
+    const nodeType = isRuleNode ? 'rule' : isMapNode ? 'map' : 'custom'
+    const title = isRuleNode ? '新规则' : isMapNode ? '新地图' : '自增设定节点'
+    const summary = isRuleNode ? defaultRuleContent : isMapNode ? defaultMapSummary : '可删除节点；删除后来源百科条目归档为废弃。'
     const customNode = {
       id: customId,
       type: 'worldNode',
       position,
       data: {
-        title: isRuleNode ? '新规则' : '自增设定节点',
-        nodeType: isRuleNode ? 'rule' : 'custom',
-        summary: isRuleNode ? defaultRuleContent : '可删除节点；删除后来源百科条目归档为废弃。',
+        title,
+        nodeType,
+        summary,
         syncStatus: 'pending',
         locked: false,
         count: 0,
-        icon: isRuleNode ? '#' : '+',
+        icon: isRuleNode ? '#' : isMapNode ? 'M' : '+',
         parentId: parent.id,
         depth: Number(parent.data.depth || 0) + 1,
         expanded: true,
         contentExpanded: false,
-        tags: isRuleNode ? ['规则体系', '规则'] : ['自增设定'],
+        tags: isRuleNode ? ['规则体系', '规则'] : isMapNode ? ['地理地图', '地图'] : ['自增设定'],
         knowledgeEntryId: `entry-${customId}`,
         syncScope: 'knowledge-entry',
         syncDirection: 'map-to-knowledge',
         syncFields: defaultKnowledgeSyncFields,
         syncVersion: 0,
         sourceBinding: 'bound',
-        lastSyncedAt: null
+        lastSyncedAt: null,
+        ...(isMapNode
+          ? {
+              mapEngine: 'excalidraw',
+              visualStyle: 'sketch',
+              mapScene: createDefaultMapScene(title),
+              mapObjects: [],
+              viewport: {
+                center: null,
+                zoom: 1
+              },
+              thumbnail: null,
+              updatedAt: null
+            }
+          : {})
       }
     }
     onDraftChange((current) => ({
@@ -1239,6 +1275,28 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       syncStatus: 'suggested'
     })
     setContextMenu(null)
+  }
+
+  function openMapEditor(nodeId = selectedNodeId) {
+    const node = getNodeById(nodeId)
+    if (!node || node.data.nodeType !== 'map') return
+    selectNode(node.id)
+    setEditingNode(null)
+    setContextMenu(null)
+    setMapEditorNodeId(node.id)
+  }
+
+  function closeMapEditor() {
+    setMapEditorNodeId(null)
+  }
+
+  function saveMapEditor(nodeId, patch) {
+    updateNode(nodeId, {
+      ...patch,
+      syncStatus: 'pending'
+    })
+    setMapEditorNodeId(null)
+    selectNode(nodeId)
   }
 
   function toggleRuleContent(nodeId) {
@@ -1448,20 +1506,25 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                   role="menu"
                 >
                   <button type="button" role="menuitem" onClick={() => addCustomNode('child', contextNode.id)}>
-                    <span>{contextNode.id === 'rules' ? '新增规则' : '新增子节点'}</span>
+                    <span>{contextNode.id === 'rules' || contextNode.data.nodeType === 'rule' ? '新增规则' : contextNode.id === 'geography' || contextNode.data.nodeType === 'map' ? '新增地图' : '新增子节点'}</span>
                     <kbd>Tab</kbd>
                   </button>
                   <button type="button" role="menuitem" onClick={() => addCustomNode('sibling', contextNode.id)}>
-                    <span>{contextNode.data.nodeType === 'rule' ? '新增同级规则' : '新增同级节点'}</span>
+                    <span>{contextNode.data.nodeType === 'rule' ? '新增同级规则' : contextNode.data.nodeType === 'map' ? '新增同级地图' : '新增同级节点'}</span>
                     <kbd>Enter</kbd>
                   </button>
                   <button type="button" role="menuitem" onClick={() => addNoteNode(contextNode.id)}>
                     <span>添加便签</span>
                   </button>
                   <button type="button" role="menuitem" onClick={() => startRenameNode(contextNode.id)}>
-                    <span>{contextNode.data.nodeType === 'rule' ? '编辑规则' : '重命名'}</span>
+                    <span>{contextNode.data.nodeType === 'rule' ? '编辑规则' : contextNode.data.nodeType === 'map' ? '重命名地图' : '重命名'}</span>
                     <kbd>F2</kbd>
                   </button>
+                  {contextNode.data.nodeType === 'map' && (
+                    <button type="button" role="menuitem" onClick={() => openMapEditor(contextNode.id)}>
+                      <span>打开地图编辑器</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     role="menuitem"
@@ -1515,6 +1578,13 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
           />
         )}
       </section>
+      {mapEditorNode && (
+        <MapEditorModal
+          node={mapEditorNode}
+          onClose={closeMapEditor}
+          onSave={(patch) => saveMapEditor(mapEditorNode.id, patch)}
+        />
+      )}
     </section>
   )
 }
@@ -1541,6 +1611,10 @@ function NodeHandles() {
 function WorldNode({ data, selected }) {
   if (data.nodeType === 'rule') {
     return <RuleWorldNode data={data} selected={selected} />
+  }
+
+  if (data.nodeType === 'map') {
+    return <MapWorldNode data={data} selected={selected} />
   }
 
   return (
@@ -1584,6 +1658,47 @@ function WorldNode({ data, selected }) {
           {data.expanded === false ? '+' : '-'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function MapWorldNode({ data, selected }) {
+  return (
+    <div
+      className={`world-node map-node ${selected ? 'is-selected' : ''}`}
+      title="双击打开地图编辑器"
+      onDoubleClick={(event) => {
+        event.stopPropagation()
+        data.onOpenMapEditor?.(data.nodeId)
+      }}
+    >
+      <NodeHandles />
+      {data.isEditing ? (
+        <input
+          className="node-title-input nodrag"
+          value={data.editTitle}
+          autoFocus
+          aria-label="地图名称"
+          placeholder="地图名称"
+          onChange={(event) => data.onEditTitleChange?.(event.target.value)}
+          onBlur={() => data.onCommitRename?.()}
+          onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => {
+            event.stopPropagation()
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              data.onCommitRename?.()
+            }
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              data.onCancelRename?.()
+            }
+          }}
+        />
+      ) : (
+        <strong>{data.title}</strong>
+      )}
     </div>
   )
 }
@@ -1738,6 +1853,223 @@ function NoteNode({ data, selected }) {
   )
 }
 
+function MapEditorModal({ node, onClose, onSave }) {
+  const apiRef = useRef(null)
+  const importInputRef = useRef(null)
+  const initialScene = useMemo(() => normalizeMapScene(node.data.mapScene, node.data.title), [node.id, node.data.mapScene, node.data.title])
+  const sceneRef = useRef(initialScene)
+  const [mapTitle, setMapTitle] = useState(node.data.title || '新地图')
+  const [objectCount, setObjectCount] = useState(() => countMapSceneObjects(initialScene))
+  const [statusText, setStatusText] = useState('')
+  const [isSaving, setSaving] = useState(false)
+
+  useEffect(() => {
+    sceneRef.current = initialScene
+    setMapTitle(node.data.title || '新地图')
+    setObjectCount(countMapSceneObjects(initialScene))
+  }, [initialScene, node.data.title])
+
+  function captureScene(elements, appState, files) {
+    const nextScene = {
+      type: 'excalidraw',
+      elements: [...elements],
+      appState: sanitizeExcalidrawAppState(appState, mapTitle),
+      files: files || {}
+    }
+    sceneRef.current = nextScene
+    setObjectCount(countMapSceneObjects(nextScene))
+  }
+
+  function getCurrentScene() {
+    const api = apiRef.current
+    if (!api) {
+      return {
+        ...sceneRef.current,
+        appState: sanitizeExcalidrawAppState(sceneRef.current.appState, mapTitle)
+      }
+    }
+
+    return {
+      type: 'excalidraw',
+      elements: [...api.getSceneElements()],
+      appState: sanitizeExcalidrawAppState(api.getAppState(), mapTitle),
+      files: api.getFiles() || {}
+    }
+  }
+
+  async function saveMap() {
+    const title = mapTitle.trim() || '新地图'
+    const scene = getCurrentScene()
+    setSaving(true)
+    setStatusText('')
+
+    try {
+      const thumbnail = await createMapSceneThumbnail(scene)
+      const savedAt = new Date().toISOString()
+      onSave({
+        title,
+        summary: node.data.summary || defaultMapSummary,
+        mapEngine: 'excalidraw',
+        visualStyle: node.data.visualStyle || 'sketch',
+        mapScene: {
+          ...scene,
+          appState: sanitizeExcalidrawAppState(scene.appState, title)
+        },
+        mapObjects: Array.isArray(node.data.mapObjects) ? node.data.mapObjects : [],
+        viewport: {
+          center: [Number(scene.appState.scrollX || 0), Number(scene.appState.scrollY || 0)],
+          zoom: Number(scene.appState.zoom?.value || scene.appState.zoom || 1)
+        },
+        thumbnail: thumbnail || node.data.thumbnail || null,
+        updatedAt: savedAt
+      })
+    } catch (error) {
+      setStatusText(`保存失败：${error.message}`)
+      setSaving(false)
+    }
+  }
+
+  function exportJson() {
+    const scene = getCurrentScene()
+    downloadTextFile(`${createSafeFilename(mapTitle || '新地图')}.excalidraw`, JSON.stringify(scene, null, 2), 'application/json')
+    setStatusText('已导出 JSON')
+  }
+
+  async function exportPng() {
+    try {
+      const scene = getCurrentScene()
+      const dataUrl = await createMapSceneThumbnail(scene, 960)
+      if (!dataUrl) {
+        setStatusText('当前地图没有可导出的画布对象')
+        return
+      }
+      downloadDataUrl(`${createSafeFilename(mapTitle || '新地图')}.png`, dataUrl)
+      setStatusText('已导出 PNG')
+    } catch (error) {
+      setStatusText(`导出失败：${error.message}`)
+    }
+  }
+
+  async function importJson(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const text = await file.text()
+      const importedScene = normalizeMapScene(JSON.parse(text), mapTitle || '新地图')
+      sceneRef.current = importedScene
+      apiRef.current?.updateScene({
+        elements: importedScene.elements,
+        appState: importedScene.appState
+      })
+      if (importedScene.files && Object.keys(importedScene.files).length > 0) {
+        apiRef.current?.addFiles(Object.values(importedScene.files))
+      }
+      setObjectCount(countMapSceneObjects(importedScene))
+      setStatusText('已导入 JSON')
+    } catch (error) {
+      setStatusText(`导入失败：${error.message}`)
+    } finally {
+      event.target.value = ''
+    }
+  }
+
+  return (
+    <div className="modal-backdrop map-editor-backdrop" role="dialog" aria-modal="true" aria-labelledby="mapEditorTitle">
+      <div className="modal map-editor-modal">
+        <header className="modal-header map-editor-header">
+          <div>
+            <p className="eyebrow">地理地图</p>
+            <h2 id="mapEditorTitle">地图编辑器</h2>
+          </div>
+          <button className="icon-only" type="button" onClick={onClose} aria-label="关闭">×</button>
+        </header>
+
+        <div className="map-editor-titlebar">
+          <label className="form-field map-title-field" htmlFor="mapTitleInput">
+            <span>地图名称</span>
+            <input
+              id="mapTitleInput"
+              maxLength={40}
+              onChange={(event) => setMapTitle(event.target.value)}
+              placeholder="地图名称"
+              type="text"
+              value={mapTitle}
+            />
+          </label>
+          <div className="map-editor-actions">
+            <input
+              ref={importInputRef}
+              accept="application/json,.json,.excalidraw"
+              className="visually-hidden"
+              onChange={importJson}
+              type="file"
+            />
+            <button className="secondary-button compact" type="button" onClick={() => importInputRef.current?.click()}>导入</button>
+            <button className="secondary-button compact" type="button" onClick={exportJson}>导出 JSON</button>
+            <button className="secondary-button compact" type="button" onClick={exportPng}>导出 PNG</button>
+            <button className="secondary-button compact" type="button" onClick={onClose}>取消</button>
+            <button className="primary-button compact" type="button" onClick={saveMap} disabled={isSaving}>{isSaving ? '保存中' : '保存'}</button>
+          </div>
+        </div>
+
+        <div className="map-editor-layout">
+          <section className="map-editor-canvas" aria-label="地图画布">
+            <Suspense fallback={<div className="map-editor-loading">地图画布加载中</div>}>
+              <ExcalidrawEditor
+                key={node.id}
+                excalidrawAPI={(api) => {
+                  apiRef.current = api
+                }}
+                initialData={{
+                  elements: initialScene.elements,
+                  appState: initialScene.appState,
+                  files: initialScene.files
+                }}
+                name={mapTitle || '新地图'}
+                onChange={captureScene}
+                UIOptions={{
+                  canvasActions: {
+                    loadScene: false,
+                    saveToActiveFile: false,
+                    export: false,
+                    saveAsImage: false
+                  }
+                }}
+              />
+            </Suspense>
+          </section>
+
+          <aside className="map-editor-inspector" aria-label="地图属性">
+            <dl>
+              <div>
+                <dt>对象</dt>
+                <dd>{objectCount}</dd>
+              </div>
+              <div>
+                <dt>引擎</dt>
+                <dd>Excalidraw</dd>
+              </div>
+              <div>
+                <dt>风格</dt>
+                <dd>手绘草图</dd>
+              </div>
+              <div>
+                <dt>更新</dt>
+                <dd>{node.data.updatedAt ? formatDateTime(node.data.updatedAt) : '未保存'}</dd>
+              </div>
+            </dl>
+            {node.data.thumbnail && (
+              <img className="map-editor-thumbnail" src={node.data.thumbnail} alt={`${node.data.title} 缩略图`} />
+            )}
+            {statusText && <p className="map-editor-status" role="status">{statusText}</p>}
+          </aside>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function KnowledgeRepository({ activeEntryId, entries, archivedEntries, syncResult }) {
   return (
     <div className="knowledge-repository">
@@ -1875,6 +2207,125 @@ function formatSavedTime(date) {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+function formatDateTime(value) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '未保存'
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+function createDefaultMapScene(title = '新地图') {
+  return {
+    type: 'excalidraw',
+    elements: [],
+    appState: {
+      name: title,
+      viewBackgroundColor: '#f7ead1',
+      scrollX: 0,
+      scrollY: 0,
+      zoom: { value: 1 },
+      currentItemStrokeColor: '#2f2417',
+      currentItemBackgroundColor: 'transparent',
+      currentItemFillStyle: 'hachure',
+      currentItemStrokeWidth: 2,
+      currentItemRoughness: 2,
+      theme: 'light',
+      gridSize: null
+    },
+    files: {}
+  }
+}
+
+function normalizeMapScene(scene, title = '新地图') {
+  const fallback = createDefaultMapScene(title)
+  if (!scene || typeof scene !== 'object') return fallback
+
+  const elements = Array.isArray(scene.elements) ? scene.elements : fallback.elements
+  const files = scene.files && typeof scene.files === 'object' ? scene.files : fallback.files
+
+  return {
+    type: 'excalidraw',
+    elements,
+    appState: sanitizeExcalidrawAppState({
+      ...fallback.appState,
+      ...(scene.appState && typeof scene.appState === 'object' ? scene.appState : {})
+    }, title),
+    files
+  }
+}
+
+function sanitizeExcalidrawAppState(appState = {}, title = '新地图') {
+  const zoomValue = Number(appState.zoom?.value || appState.zoom || 1)
+  return {
+    name: title,
+    viewBackgroundColor: appState.viewBackgroundColor || '#f7ead1',
+    scrollX: Number(appState.scrollX || 0),
+    scrollY: Number(appState.scrollY || 0),
+    zoom: { value: Number.isFinite(zoomValue) ? zoomValue : 1 },
+    currentItemStrokeColor: appState.currentItemStrokeColor || '#2f2417',
+    currentItemBackgroundColor: appState.currentItemBackgroundColor || 'transparent',
+    currentItemFillStyle: appState.currentItemFillStyle || 'hachure',
+    currentItemStrokeWidth: Number(appState.currentItemStrokeWidth || 2),
+    currentItemRoughness: Number(appState.currentItemRoughness || 2),
+    currentItemOpacity: Number(appState.currentItemOpacity || 100),
+    currentItemFontFamily: appState.currentItemFontFamily,
+    currentItemFontSize: appState.currentItemFontSize,
+    currentItemTextAlign: appState.currentItemTextAlign,
+    theme: appState.theme || 'light',
+    gridSize: appState.gridSize || null
+  }
+}
+
+function countMapSceneObjects(scene) {
+  return Array.isArray(scene?.elements)
+    ? scene.elements.filter((element) => !element.isDeleted).length
+    : 0
+}
+
+async function createMapSceneThumbnail(scene, maxWidthOrHeight = 420) {
+  const elements = Array.isArray(scene?.elements)
+    ? scene.elements.filter((element) => !element.isDeleted)
+    : []
+  if (elements.length === 0) return null
+
+  const { exportToCanvas } = await import('@excalidraw/excalidraw')
+  const canvas = await exportToCanvas({
+    elements,
+    appState: {
+      ...sanitizeExcalidrawAppState(scene.appState),
+      exportWithDarkMode: false
+    },
+    files: scene.files || {},
+    maxWidthOrHeight,
+    exportPadding: 24
+  })
+  return canvas.toDataURL('image/png', 0.92)
+}
+
+function createSafeFilename(value) {
+  const filename = String(value || 'map').trim().replace(/[\\/:*?"<>|]+/g, '-')
+  return filename || 'map'
+}
+
+function downloadTextFile(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  downloadUrl(filename, url)
+  URL.revokeObjectURL(url)
+}
+
+function downloadDataUrl(filename, dataUrl) {
+  downloadUrl(filename, dataUrl)
+}
+
+function downloadUrl(filename, url) {
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
 }
 
 function loadWorldviewDraft(project) {
@@ -2059,11 +2510,18 @@ function normalizeWorldviewNode(node, parentByEdge) {
   const inferredParentId = node.id === 'root'
     ? null
     : data.parentId || inferCatalogParentId(node.id) || parentByEdge.get(node.id) || 'root'
-  const nodeType = inferredParentId === 'rules' && rawNodeType === 'custom' ? 'rule' : rawNodeType
+  const nodeType = inferredParentId === 'rules' && rawNodeType === 'custom'
+    ? 'rule'
+    : inferredParentId === 'geography' && rawNodeType === 'custom'
+      ? 'map'
+      : rawNodeType
   const syncScope = type === 'noteNode' || nodeType === 'note' ? 'canvas-note' : 'knowledge-entry'
   const icon = nodeType === 'rule' && (!data.icon || data.icon === '+')
     ? '#'
-    : data.icon || (syncScope === 'canvas-note' ? '!' : '+')
+    : nodeType === 'map' && (!data.icon || data.icon === '+')
+      ? 'M'
+      : data.icon || (syncScope === 'canvas-note' ? '!' : '+')
+  const title = data.title || data.text || (nodeType === 'map' ? '新地图' : '未命名节点')
 
   return {
     ...node,
@@ -2071,9 +2529,9 @@ function normalizeWorldviewNode(node, parentByEdge) {
     deletable: data.locked ? false : node.deletable,
     data: {
       ...data,
-      title: data.title || data.text || '未命名节点',
+      title,
       nodeType,
-      summary: data.summary || data.note || '暂无摘要',
+      summary: data.summary || data.note || (nodeType === 'map' ? defaultMapSummary : '暂无摘要'),
       syncStatus: data.syncStatus || (syncScope === 'canvas-note' ? 'notSynced' : 'pending'),
       locked: Boolean(data.locked),
       count: Number(data.count || 0),
@@ -2089,7 +2547,18 @@ function normalizeWorldviewNode(node, parentByEdge) {
       syncFields: syncScope === 'knowledge-entry' ? data.syncFields || defaultKnowledgeSyncFields : [],
       syncVersion: Number(data.syncVersion || 0),
       sourceBinding: syncScope === 'knowledge-entry' ? data.sourceBinding || 'bound' : 'canvas-only',
-      lastSyncedAt: data.lastSyncedAt || null
+      lastSyncedAt: data.lastSyncedAt || null,
+      ...(nodeType === 'map'
+        ? {
+            mapEngine: data.mapEngine || 'excalidraw',
+            visualStyle: data.visualStyle || 'sketch',
+            mapScene: normalizeMapScene(data.mapScene, title),
+            mapObjects: Array.isArray(data.mapObjects) ? data.mapObjects : [],
+            viewport: data.viewport || { center: null, zoom: 1 },
+            thumbnail: data.thumbnail || null,
+            updatedAt: data.updatedAt || null
+          }
+        : {})
     }
   }
 }
@@ -2302,6 +2771,14 @@ function getAttachableParent(selectedNode, nodes) {
   if (!selectedNode || selectedNode.type === 'noteNode') {
     return nodes.find((node) => node.id === selectedNode?.data.parentId) || nodes.find((node) => node.id === 'root') || nodes[0]
   }
+
+  if (!selectedNode.data?.locked && selectedNode.data?.parentId) {
+    const parent = nodes.find((node) => node.id === selectedNode.data.parentId)
+    if (parent?.data?.locked) {
+      return parent
+    }
+  }
+
   return selectedNode
 }
 
@@ -2420,6 +2897,7 @@ function getDefaultNodeTags(nodeType) {
     'world-root': ['世界观根节点'],
     'world-section': ['世界节点'],
     rule: ['规则体系', '规则'],
+    map: ['地理地图', '地图'],
     custom: ['自增设定'],
     note: ['画布便签']
   }
@@ -2486,6 +2964,7 @@ function getKnowledgeCategory(nodeType) {
   const categoryMap = {
     'world-section': '世界节点',
     rule: '规则条目',
+    map: '地理地图',
     custom: '自增条目',
     'world-root': '世界观根节点'
   }
@@ -2494,6 +2973,8 @@ function getKnowledgeCategory(nodeType) {
 
 function getNodeKindLabel(node) {
   if (node.type === 'noteNode') return '画布便签'
+  if (node.data.nodeType === 'rule') return '规则条目'
+  if (node.data.nodeType === 'map') return '地图条目'
   return node.data.locked ? '固定业务节点' : '用户自增节点'
 }
 

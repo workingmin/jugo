@@ -1,6 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import '@xyflow/react/dist/style.css'
+import '@excalidraw/excalidraw/index.css'
 import './styles/theme.css'
 import './styles/project-dashboard.css'
 import './styles/project-workspace.css'
