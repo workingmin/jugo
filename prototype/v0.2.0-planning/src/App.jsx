@@ -7,7 +7,6 @@ import {
   ConnectionMode,
   Handle,
   MarkerType,
-  Panel,
   Position,
   ReactFlow
 } from '@xyflow/react'
@@ -28,68 +27,121 @@ const viewLabels = {
 
 const systemCatalog = [
   {
-    id: 'overview',
-    title: '世界观总览',
-    icon: '◎',
+    id: 'rules',
+    title: '规则体系',
+    icon: '#',
     side: 'left',
-    modules: ['世界观设定', '核心概念', '基础规则摘要']
+    summary: '定义世界运行规则、能力边界、代价约束和不可违背的底层逻辑。',
+    tags: ['规则体系', '世界规则']
   },
   {
     id: 'geography',
-    title: '地理系统',
-    icon: '⌖',
+    title: '地理地图',
+    icon: 'M',
     side: 'left',
-    modules: ['地理详情', '地点管理', '地图资源']
+    summary: '沉淀地理格局、关键地点、路线区域和地图资源。',
+    tags: ['地理地图', '地点']
   },
   {
-    id: 'characters',
-    title: '人物系统',
-    icon: '☷',
+    id: 'relations',
+    title: '人物关系',
+    icon: '@',
     side: 'left',
-    modules: ['人物档案', '人物关系图', '复杂关系网络', '能力技能']
+    summary: '维护核心人物、人物关系、关系变化和角色之间的牵引力。',
+    tags: ['人物关系', '人物']
   },
   {
-    id: 'history',
-    title: '历史系统',
-    icon: '◷',
+    id: 'factions',
+    title: '势力阵营',
+    icon: 'F',
     side: 'left',
-    modules: ['时间线', '关键转折', '历史事件']
+    summary: '整理组织、阵营、政治经济结构和阵营之间的利益位置。',
+    tags: ['势力阵营', '组织']
   },
   {
-    id: 'culture',
-    title: '文化系统',
-    icon: '✦',
-    side: 'right',
-    modules: ['宗教信仰', '语言文字', '艺术娱乐', '风俗禁忌']
+    id: 'customs',
+    title: '风俗文化',
+    icon: 'C',
+    side: 'left',
+    summary: '记录宗教信仰、语言文字、风俗禁忌、艺术娱乐和日常文化。',
+    tags: ['风俗文化', '文化']
   },
   {
-    id: 'society',
-    title: '社会结构',
-    icon: '▥',
+    id: 'conflicts',
+    title: '矛盾冲突',
+    icon: '!',
     side: 'right',
-    modules: ['政治体系', '经济系统', '外交关系', '组织 / 阵营']
+    summary: '聚合主要矛盾、长期冲突、阵营对抗和剧情推进压力。',
+    tags: ['矛盾冲突', '冲突']
   },
   {
-    id: 'creation',
-    title: '创作管理',
-    icon: '✎',
+    id: 'timeline',
+    title: '事件年表',
+    icon: 'T',
     side: 'right',
-    modules: ['伏笔管理', '灵感库', '术语表']
+    summary: '按时间整理历史事件、关键转折、章节前史和事件因果。',
+    tags: ['事件年表', '事件']
+  },
+  {
+    id: 'foreshadowing',
+    title: '伏笔',
+    icon: 'V',
+    side: 'right',
+    summary: '登记伏笔线索、埋设位置、回收条件和未闭合问题。',
+    tags: ['伏笔', '线索']
+  },
+  {
+    id: 'inspiration',
+    title: '灵感',
+    icon: '*',
+    side: 'right',
+    summary: '收集灵感片段、待确认设定、备选桥段和临时创作想法。',
+    tags: ['灵感', '创作想法']
   }
 ]
 
-const deprecatedWorldviewNodeIds = new Set(['tools'])
+const legacyWorldviewNodeParentMap = {
+  overview: 'rules',
+  'overview-0': 'rules',
+  'overview-1': 'rules',
+  'overview-2': 'rules',
+  'geography-0': 'geography',
+  'geography-1': 'geography',
+  'geography-2': 'geography',
+  characters: 'relations',
+  'characters-0': 'relations',
+  'characters-1': 'relations',
+  'characters-2': 'relations',
+  'characters-3': 'relations',
+  history: 'timeline',
+  'history-0': 'timeline',
+  'history-1': 'timeline',
+  'history-2': 'timeline',
+  culture: 'customs',
+  'culture-0': 'customs',
+  'culture-1': 'customs',
+  'culture-2': 'customs',
+  'culture-3': 'customs',
+  society: 'factions',
+  'society-0': 'factions',
+  'society-1': 'factions',
+  'society-2': 'conflicts',
+  'society-3': 'factions',
+  creation: 'inspiration',
+  'creation-0': 'foreshadowing',
+  'creation-1': 'inspiration',
+  'creation-2': 'inspiration'
+}
+
+const deprecatedWorldviewNodeIds = new Set(['tools', ...Object.keys(legacyWorldviewNodeParentMap)])
 const deprecatedWorldviewNodeIdPattern = /^tools-\d+$/
 
 const catalogLayoutConfig = {
-  leftX: 120,
-  rightX: 920,
+  leftX: 150,
+  rightX: 890,
   rootX: 520,
-  startY: 72,
-  groupMinHeight: 260,
-  groupGap: 64,
-  moduleSpacing: 96,
-  moduleXOffset: 300,
+  startY: 96,
+  nodeSpacing: 116,
   childXOffset: 300,
   childYSpacing: 96,
   noteYSpacing: 108
@@ -108,6 +160,7 @@ const nodeHandlePositions = [
 ]
 
 const defaultKnowledgeSyncFields = ['title', 'summary', 'nodeType', 'tags']
+const defaultRuleContent = '说明这条规则的触发条件、限制、代价和例外。'
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
@@ -957,6 +1010,7 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
   const [selectedNodeId, setSelectedNodeId] = useState(draft.selectedNodeId || 'root')
   const [contextMenu, setContextMenu] = useState(null)
   const [editingNode, setEditingNode] = useState(null)
+  const [isKnowledgeNavExpanded, setKnowledgeNavExpanded] = useState(true)
   const selectedNode = draft.nodes.find((node) => node.id === selectedNodeId) || draft.nodes[0]
   const selectedHasChildren = selectedNode ? hasNodeChildren(draft.nodes, selectedNode.id) : false
   const knowledgeEntries = useMemo(() => createKnowledgeEntries(draft.nodes), [draft.nodes])
@@ -994,12 +1048,17 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
         hasChildren,
         isEditing: editingNode?.nodeId === node.id,
         editTitle: editingNode?.nodeId === node.id ? editingNode.title : node.data.title,
+        editSummary: editingNode?.nodeId === node.id ? editingNode.summary : node.data.summary,
         onEditTitleChange: (title) => setEditingNode((current) => (
           current?.nodeId === node.id ? { ...current, title } : current
+        )),
+        onEditSummaryChange: (summary) => setEditingNode((current) => (
+          current?.nodeId === node.id ? { ...current, summary } : current
         )),
         onCommitRename: commitRenameNode,
         onCancelRename: cancelRenameNode,
         onStartRename: startRenameNode,
+        onToggleRuleContent: toggleRuleContent,
         onToggleExpand: hasChildren ? toggleNodeExpand : undefined
       }
     }
@@ -1057,22 +1116,24 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
       : getAttachableParent(baseNode, draft.nodes)
     const customId = `custom-${Date.now()}`
     const position = getNextChildNodePosition(parent, draft.nodes)
+    const isRuleNode = parent.id === 'rules'
     const customNode = {
       id: customId,
       type: 'worldNode',
       position,
       data: {
-        title: '自增设定节点',
-        nodeType: 'custom',
-        summary: '可删除节点；删除后来源百科条目归档为废弃。',
+        title: isRuleNode ? '新规则' : '自增设定节点',
+        nodeType: isRuleNode ? 'rule' : 'custom',
+        summary: isRuleNode ? defaultRuleContent : '可删除节点；删除后来源百科条目归档为废弃。',
         syncStatus: 'pending',
         locked: false,
         count: 0,
-        icon: '+',
+        icon: isRuleNode ? '#' : '+',
         parentId: parent.id,
         depth: Number(parent.data.depth || 0) + 1,
         expanded: true,
-        tags: ['自增设定'],
+        contentExpanded: false,
+        tags: isRuleNode ? ['规则体系', '规则'] : ['自增设定'],
         knowledgeEntryId: `entry-${customId}`,
         syncScope: 'knowledge-entry',
         syncDirection: 'map-to-knowledge',
@@ -1180,6 +1241,17 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     setContextMenu(null)
   }
 
+  function toggleRuleContent(nodeId) {
+    onDraftChange((current) => ({
+      ...current,
+      nodes: current.nodes.map((node) => (
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, contentExpanded: !node.data.contentExpanded } }
+          : node
+      ))
+    }))
+  }
+
   function updateNode(nodeId, patch) {
     onDraftChange((current) => ({
       ...current,
@@ -1222,7 +1294,8 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     selectNode(node.id)
     setEditingNode({
       nodeId: node.id,
-      title: node.data.title || ''
+      title: node.data.title || '',
+      summary: node.data.summary || ''
     })
     setContextMenu(null)
   }
@@ -1231,9 +1304,15 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     if (!editingNode) return
     const node = draft.nodes.find((item) => item.id === editingNode.nodeId)
     const title = editingNode.title.trim()
-    if (node && title && title !== node.data.title) {
+    const isRuleNode = node?.data.nodeType === 'rule'
+    const summary = isRuleNode ? (editingNode.summary || '').trim() || defaultRuleContent : node?.data.summary
+    const titleChanged = node && title && title !== node.data.title
+    const summaryChanged = isRuleNode && summary !== node.data.summary
+
+    if (node && title && (titleChanged || summaryChanged)) {
       updateNode(node.id, {
         title,
+        ...(isRuleNode ? { summary } : {}),
         ...(isKnowledgeSyncNode(node) ? { syncStatus: 'pending' } : {})
       })
     }
@@ -1305,12 +1384,23 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
     <section className="worldview-workbench" aria-label="世界观编辑">
       <aside className="worldview-nav" aria-label="世界观导航">
         <button className={`worldview-nav-primary ${draft.activeSection === 'mindmap' ? 'is-active' : ''}`} type="button" onClick={() => setSection('mindmap')}>思维导图</button>
-        <button className={`worldview-nav-primary ${draft.activeSection === 'knowledge' ? 'is-active' : ''}`} type="button" onClick={() => setSection('knowledge')}>百科仓库</button>
-        <div className="worldview-nav-groups">
-          {systemCatalog.map((group) => (
+        <div className={`worldview-nav-disclosure ${draft.activeSection === 'knowledge' ? 'is-active' : ''}`}>
+          <button className="worldview-nav-link" type="button" onClick={() => setSection('knowledge')}>百科仓库</button>
+          <button
+            className="worldview-nav-toggle"
+            type="button"
+            onClick={() => setKnowledgeNavExpanded((current) => !current)}
+            aria-expanded={isKnowledgeNavExpanded}
+            aria-label={isKnowledgeNavExpanded ? '收起百科仓库子节点' : '展开百科仓库子节点'}
+          >
+            <span aria-hidden="true">{isKnowledgeNavExpanded ? '-' : '+'}</span>
+          </button>
+        </div>
+        <div className={`worldview-nav-groups ${isKnowledgeNavExpanded ? '' : 'is-collapsed'}`} aria-hidden={!isKnowledgeNavExpanded}>
+          {isKnowledgeNavExpanded && systemCatalog.map((group) => (
             <button key={group.id} type="button" onClick={() => setSection('knowledge')}>
-              <span>{group.icon}</span>
-              {group.title}
+              <span className="worldview-nav-group-icon">{group.icon}</span>
+              <span className="worldview-nav-group-title">{group.title}</span>
             </button>
           ))}
         </div>
@@ -1345,12 +1435,11 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                 maxZoom={1.6}
                 panOnScroll={false}
                 preventScrolling={false}
+                proOptions={{ hideAttribution: true }}
+                zoomOnDoubleClick={false}
                 zoomOnScroll={false}
               >
                 <Background color="var(--color-grid-line)" gap={28} />
-                <Panel className="world-map-panel" position="top-left">
-                  世界观 0-1 主画布
-                </Panel>
               </ReactFlow>
               {contextNode && (
                 <div
@@ -1359,18 +1448,18 @@ function WorldviewWorkbench({ draft, onDraftChange, syncResult }) {
                   role="menu"
                 >
                   <button type="button" role="menuitem" onClick={() => addCustomNode('child', contextNode.id)}>
-                    <span>新增子节点</span>
+                    <span>{contextNode.id === 'rules' ? '新增规则' : '新增子节点'}</span>
                     <kbd>Tab</kbd>
                   </button>
                   <button type="button" role="menuitem" onClick={() => addCustomNode('sibling', contextNode.id)}>
-                    <span>新增同级节点</span>
+                    <span>{contextNode.data.nodeType === 'rule' ? '新增同级规则' : '新增同级节点'}</span>
                     <kbd>Enter</kbd>
                   </button>
                   <button type="button" role="menuitem" onClick={() => addNoteNode(contextNode.id)}>
                     <span>添加便签</span>
                   </button>
                   <button type="button" role="menuitem" onClick={() => startRenameNode(contextNode.id)}>
-                    <span>重命名</span>
+                    <span>{contextNode.data.nodeType === 'rule' ? '编辑规则' : '重命名'}</span>
                     <kbd>F2</kbd>
                   </button>
                   <button
@@ -1450,6 +1539,10 @@ function NodeHandles() {
 }
 
 function WorldNode({ data, selected }) {
+  if (data.nodeType === 'rule') {
+    return <RuleWorldNode data={data} selected={selected} />
+  }
+
   return (
     <div className={`world-node ${selected ? 'is-selected' : ''} ${data.locked ? 'is-locked' : ''}`}>
       <NodeHandles />
@@ -1491,6 +1584,110 @@ function WorldNode({ data, selected }) {
           {data.expanded === false ? '+' : '-'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function RuleWorldNode({ data, selected }) {
+  const ruleContent = data.summary || defaultRuleContent
+
+  return (
+    <div
+      className={`world-node rule-node ${selected ? 'is-selected' : ''} ${data.contentExpanded ? 'is-content-expanded' : ''}`}
+      title={ruleContent}
+      onDoubleClick={(event) => {
+        event.stopPropagation()
+        data.onStartRename?.(data.nodeId)
+      }}
+    >
+      <NodeHandles />
+      {data.isEditing ? (
+        <div className="rule-node-editor nodrag">
+          <input
+            className="node-title-input"
+            value={data.editTitle}
+            autoFocus
+            aria-label="规则名称"
+            placeholder="规则名称"
+            onChange={(event) => data.onEditTitleChange?.(event.target.value)}
+            onClick={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                data.onCommitRename?.()
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                data.onCancelRename?.()
+              }
+            }}
+          />
+          <textarea
+            className="node-content-input"
+            value={data.editSummary}
+            rows={4}
+            aria-label="规则内容"
+            placeholder="规则内容"
+            onChange={(event) => data.onEditSummaryChange?.(event.target.value)}
+            onClick={(event) => event.stopPropagation()}
+            onDoubleClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              event.stopPropagation()
+              if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+                event.preventDefault()
+                data.onCommitRename?.()
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault()
+                data.onCancelRename?.()
+              }
+            }}
+          />
+          <div className="rule-node-editor-actions">
+            <button type="button" onClick={() => data.onCancelRename?.()}>取消</button>
+            <button type="button" onClick={() => data.onCommitRename?.()}>保存</button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="rule-node-section rule-node-name-section">
+            <strong>{data.title}</strong>
+          </div>
+          <div className="rule-node-section rule-node-content-section">
+            <div className="rule-node-content-head">
+              <button
+                className="node-action-button rule-content-toggle nodrag"
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  data.onToggleRuleContent?.(data.nodeId)
+                }}
+                onDoubleClick={(event) => event.stopPropagation()}
+                aria-label={data.contentExpanded ? '收起规则内容' : '展开规则内容'}
+              >
+                {data.contentExpanded ? '-' : '+'}
+              </button>
+            </div>
+            <button
+              className="rule-content-text nodrag"
+              type="button"
+              title={ruleContent}
+              onClick={(event) => {
+                event.stopPropagation()
+                data.onToggleRuleContent?.(data.nodeId)
+              }}
+              onDoubleClick={(event) => {
+                event.stopPropagation()
+                data.onStartRename?.(data.nodeId)
+              }}
+            >
+              {ruleContent}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1703,26 +1900,17 @@ function loadWorldviewDraft(project) {
 }
 
 function normalizeWorldviewDraft(project, draft) {
-  const sourceNodes = applyAdaptiveCatalogLayout(
-    draft.nodes?.length ? draft.nodes : createInitialNodes(project),
-    project
-  )
-    .filter((node) => !isDeprecatedWorldviewNode(node))
+  const rawNodes = draft.nodes?.length ? draft.nodes : createInitialNodes(project)
   const sourceEdges = draft.edges?.length ? draft.edges : createInitialEdges()
-  const parentByEdge = new Map()
-
-  sourceEdges.forEach((edge) => {
-    if (edge.target && edge.source && !parentByEdge.has(edge.target)) {
-      parentByEdge.set(edge.target, edge.source)
-    }
-  })
+  const parentByEdge = createParentLookup(sourceEdges)
+  const sourceNodes = applyAdaptiveCatalogLayout(
+    reconcileWorldviewCatalogNodes(project, rawNodes, parentByEdge)
+  )
 
   const nodes = sourceNodes.map((node) => normalizeWorldviewNode(node, parentByEdge))
   const nodeIds = new Set(nodes.map((node) => node.id))
   const nodesById = new Map(nodes.map((node) => [node.id, node]))
-  const edges = sourceEdges
-    .filter((edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target))
-    .map((edge) => normalizeWorldviewEdge(edge, nodesById))
+  const edges = createNormalizedWorldviewEdges(sourceEdges, nodes, nodesById)
 
   return {
     ...draft,
@@ -1732,6 +1920,92 @@ function normalizeWorldviewDraft(project, draft) {
     selectedNodeId: nodeIds.has(draft.selectedNodeId) ? draft.selectedNodeId : 'root',
     archivedEntries: draft.archivedEntries || []
   }
+}
+
+function createParentLookup(edges) {
+  const parentByEdge = new Map()
+
+  edges.forEach((edge) => {
+    if (edge.target && edge.source && !parentByEdge.has(edge.target)) {
+      parentByEdge.set(edge.target, edge.source)
+    }
+  })
+
+  return parentByEdge
+}
+
+function reconcileWorldviewCatalogNodes(project, nodes, parentByEdge) {
+  const initialNodes = createInitialNodes(project)
+  const currentNodeIds = new Set(initialNodes.map((node) => node.id))
+  const sourceById = new Map(nodes.map((node) => [node.id, node]))
+  const nextNodes = initialNodes.map((node) => mergeCurrentCatalogNode(node, sourceById.get(node.id)))
+
+  nodes.forEach((node) => {
+    if (currentNodeIds.has(node.id) || isDeprecatedWorldviewNode(node)) return
+
+    const rawParentId = node.data?.parentId || parentByEdge.get(node.id) || 'root'
+    const parentId = migrateWorldviewParentId(rawParentId)
+
+    nextNodes.push({
+      ...node,
+      data: {
+        ...node.data,
+        parentId
+      }
+    })
+  })
+
+  const availableNodeIds = new Set(nextNodes.map((node) => node.id))
+  return nextNodes.map((node) => {
+    if (node.id === 'root') {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          parentId: null
+        }
+      }
+    }
+
+    const parentId = node.data?.parentId
+    const validParentId = parentId && parentId !== node.id && availableNodeIds.has(parentId)
+      ? parentId
+      : 'root'
+
+    return {
+      ...node,
+      data: {
+        ...node.data,
+        parentId: validParentId
+      }
+    }
+  })
+}
+
+function mergeCurrentCatalogNode(initialNode, existingNode) {
+  if (!existingNode) return initialNode
+
+  const existingData = existingNode.data || {}
+  const preserveSummary = initialNode.id === 'root' || existingData.title === initialNode.data.title
+
+  return {
+    ...initialNode,
+    data: {
+      ...initialNode.data,
+      summary: preserveSummary && existingData.summary ? existingData.summary : initialNode.data.summary,
+      syncStatus: existingData.syncStatus || initialNode.data.syncStatus,
+      expanded: existingData.expanded !== false,
+      syncVersion: Number(existingData.syncVersion || initialNode.data.syncVersion || 0),
+      lastSyncedAt: existingData.lastSyncedAt || initialNode.data.lastSyncedAt
+    }
+  }
+}
+
+function migrateWorldviewParentId(parentId) {
+  if (!parentId) return 'root'
+  if (legacyWorldviewNodeParentMap[parentId]) return legacyWorldviewNodeParentMap[parentId]
+  if (deprecatedWorldviewNodeIdPattern.test(parentId) || deprecatedWorldviewNodeIds.has(parentId)) return 'root'
+  return parentId
 }
 
 function isDeprecatedWorldviewNode(node) {
@@ -1781,11 +2055,15 @@ function findCatalogLayoutAnchor(node, nodesById, positions) {
 function normalizeWorldviewNode(node, parentByEdge) {
   const data = node.data || {}
   const type = node.type || (data.nodeType === 'note' ? 'noteNode' : 'worldNode')
-  const nodeType = data.nodeType || (type === 'noteNode' ? 'note' : 'custom')
-  const syncScope = type === 'noteNode' || nodeType === 'note' ? 'canvas-note' : 'knowledge-entry'
+  const rawNodeType = data.nodeType || (type === 'noteNode' ? 'note' : 'custom')
   const inferredParentId = node.id === 'root'
     ? null
     : data.parentId || inferCatalogParentId(node.id) || parentByEdge.get(node.id) || 'root'
+  const nodeType = inferredParentId === 'rules' && rawNodeType === 'custom' ? 'rule' : rawNodeType
+  const syncScope = type === 'noteNode' || nodeType === 'note' ? 'canvas-note' : 'knowledge-entry'
+  const icon = nodeType === 'rule' && (!data.icon || data.icon === '+')
+    ? '#'
+    : data.icon || (syncScope === 'canvas-note' ? '!' : '+')
 
   return {
     ...node,
@@ -1799,10 +2077,11 @@ function normalizeWorldviewNode(node, parentByEdge) {
       syncStatus: data.syncStatus || (syncScope === 'canvas-note' ? 'notSynced' : 'pending'),
       locked: Boolean(data.locked),
       count: Number(data.count || 0),
-      icon: data.icon || (syncScope === 'canvas-note' ? '!' : '+'),
+      icon,
       parentId: inferredParentId,
       depth: Number.isFinite(Number(data.depth)) ? Number(data.depth) : inferNodeDepth(node.id, inferredParentId),
       expanded: data.expanded !== false,
+      contentExpanded: Boolean(data.contentExpanded),
       tags: Array.isArray(data.tags) && data.tags.length ? data.tags : getDefaultNodeTags(nodeType),
       knowledgeEntryId: syncScope === 'knowledge-entry' ? data.knowledgeEntryId || `entry-${node.id}` : data.knowledgeEntryId || null,
       syncScope,
@@ -1829,44 +2108,110 @@ function normalizeWorldviewEdge(edge, nodesById) {
   }
 }
 
+function createNormalizedWorldviewEdges(sourceEdges, nodes, nodesById) {
+  const edgeMap = new Map()
+  const nodeIds = new Set(nodes.map((node) => node.id))
+
+  function addEdgeCandidate(edge) {
+    if (!edge || !nodeIds.has(edge.source) || !nodeIds.has(edge.target) || edge.source === edge.target) return
+
+    const normalizedEdge = normalizeWorldviewEdge(edge, nodesById)
+    const edgeKey = `${normalizedEdge.source}-${normalizedEdge.target}`
+    if (!edgeMap.has(edgeKey)) {
+      edgeMap.set(edgeKey, normalizedEdge)
+    }
+  }
+
+  sourceEdges
+    .map(migrateWorldviewEdgeEndpoints)
+    .forEach(addEdgeCandidate)
+  createHierarchyEdges(nodes, nodesById).forEach(addEdgeCandidate)
+
+  return [...edgeMap.values()]
+}
+
+function createHierarchyEdges(nodes, nodesById) {
+  return nodes
+    .filter((node) => node.id !== 'root')
+    .map((node) => {
+      const parent = nodesById.get(node.data?.parentId)
+      if (!parent) return null
+
+      const isNote = node.type === 'noteNode' || node.data?.nodeType === 'note'
+      return {
+        id: `${parent.id}-${node.id}`,
+        source: parent.id,
+        target: node.id,
+        ...getHorizontalHandles(parent, node),
+        type: 'smoothstep',
+        ...(node.data?.locked ? { animated: node.id === 'rules' } : {}),
+        ...(isNote
+          ? {
+              style: {
+                stroke: 'var(--color-accent)',
+                strokeWidth: 2,
+                strokeDasharray: '6 5'
+              }
+            }
+          : {})
+      }
+    })
+    .filter(Boolean)
+}
+
+function migrateWorldviewEdgeEndpoints(edge) {
+  const source = migrateWorldviewEdgeEndpointId(edge.source)
+  const target = migrateWorldviewEdgeEndpointId(edge.target)
+  const endpointsChanged = source !== edge.source || target !== edge.target
+
+  return {
+    ...edge,
+    id: endpointsChanged ? `${source}-${target}` : edge.id,
+    source,
+    target,
+    ...(endpointsChanged
+      ? {
+          sourceHandle: undefined,
+          targetHandle: undefined
+        }
+      : {})
+  }
+}
+
+function migrateWorldviewEdgeEndpointId(nodeId) {
+  if (legacyWorldviewNodeParentMap[nodeId]) return legacyWorldviewNodeParentMap[nodeId]
+  if (deprecatedWorldviewNodeIdPattern.test(nodeId) || deprecatedWorldviewNodeIds.has(nodeId)) return 'root'
+  return nodeId
+}
+
 function createSystemCatalogLayout() {
   const positions = new Map()
-  const sideHeights = {}
+  const sides = ['left', 'right']
+  const maxSideCount = Math.max(
+    ...sides.map((side) => systemCatalog.filter((item) => item.side === side).length),
+    1
+  )
+  const rootY = Math.max(
+    360,
+    catalogLayoutConfig.startY + ((maxSideCount - 1) * catalogLayoutConfig.nodeSpacing) / 2
+  )
 
-  ;['left', 'right'].forEach((side) => {
-    let nextTop = catalogLayoutConfig.startY
-    systemCatalog
-      .filter((group) => group.side === side)
-      .forEach((group) => {
-        const moduleCount = Math.max(group.modules.length, 1)
-        const moduleBlockHeight = (moduleCount - 1) * catalogLayoutConfig.moduleSpacing
-        const groupHeight = Math.max(
-          catalogLayoutConfig.groupMinHeight,
-          moduleBlockHeight + catalogLayoutConfig.childYSpacing
-        )
-        const groupY = nextTop + groupHeight / 2
-        const groupX = side === 'left' ? catalogLayoutConfig.leftX : catalogLayoutConfig.rightX
-        const moduleX = groupX + (side === 'left' ? -catalogLayoutConfig.moduleXOffset : catalogLayoutConfig.moduleXOffset)
-        const firstModuleY = groupY - moduleBlockHeight / 2
+  sides.forEach((side) => {
+    const sideNodes = systemCatalog.filter((item) => item.side === side)
+    const sideX = side === 'left' ? catalogLayoutConfig.leftX : catalogLayoutConfig.rightX
+    const firstY = rootY - ((sideNodes.length - 1) * catalogLayoutConfig.nodeSpacing) / 2
 
-        positions.set(group.id, { x: groupX, y: groupY })
-        group.modules.forEach((_, index) => {
-          positions.set(`${group.id}-${index}`, {
-            x: moduleX,
-            y: firstModuleY + index * catalogLayoutConfig.moduleSpacing
-          })
-        })
-
-        nextTop += groupHeight + catalogLayoutConfig.groupGap
+    sideNodes.forEach((item, index) => {
+      positions.set(item.id, {
+        x: sideX,
+        y: firstY + index * catalogLayoutConfig.nodeSpacing
       })
-
-    sideHeights[side] = nextTop - catalogLayoutConfig.groupGap + catalogLayoutConfig.startY
+    })
   })
 
-  const canvasCenterY = Math.max(sideHeights.left || 0, sideHeights.right || 0) / 2
   positions.set('root', {
     x: catalogLayoutConfig.rootX,
-    y: Math.max(360, canvasCenterY)
+    y: rootY
   })
 
   return { positions }
@@ -1884,7 +2229,7 @@ function createInitialNodes(project) {
       data: {
         title: worldName,
         nodeType: 'world-root',
-        summary: '项目世界观根节点，保存时向百科仓库同步全部系统条目。',
+        summary: '项目世界观根节点，保存时向百科仓库同步全部一级世界节点。',
         syncStatus: 'synced',
         locked: true,
         count: systemCatalog.length,
@@ -1913,16 +2258,16 @@ function createInitialNodes(project) {
       deletable: false,
       data: {
         title: group.title,
-        nodeType: 'system',
-        summary: `${group.title}用于承载${group.modules.join('、')}等百科条目。`,
-        syncStatus: group.id === 'overview' ? 'issue' : 'pending',
+        nodeType: 'world-section',
+        summary: group.summary,
+        syncStatus: group.id === 'rules' ? 'issue' : 'pending',
         locked: true,
-        count: group.modules.length,
+        count: 0,
         icon: group.icon,
         parentId: 'root',
         depth: 1,
         expanded: true,
-        tags: ['系统目录', group.title],
+        tags: group.tags,
         knowledgeEntryId: `entry-${group.id}`,
         syncScope: 'knowledge-entry',
         syncDirection: 'map-to-knowledge',
@@ -1931,35 +2276,6 @@ function createInitialNodes(project) {
         sourceBinding: 'bound',
         lastSyncedAt: null
       }
-    })
-
-    group.modules.forEach((moduleTitle, index) => {
-      nodes.push({
-        id: `${group.id}-${index}`,
-        type: 'worldNode',
-        position: layout.positions.get(`${group.id}-${index}`),
-        deletable: false,
-        data: {
-          title: moduleTitle,
-          nodeType: 'module',
-          summary: `${moduleTitle}由思维导图节点同步生成，可在百科仓库补充结构化字段。`,
-          syncStatus: 'pending',
-          locked: true,
-          count: 0,
-          icon: group.icon,
-          parentId: group.id,
-          depth: 2,
-          expanded: true,
-          tags: [group.title, '百科模块'],
-          knowledgeEntryId: `entry-${group.id}-${index}`,
-          syncScope: 'knowledge-entry',
-          syncDirection: 'map-to-knowledge',
-          syncFields: defaultKnowledgeSyncFields,
-          syncVersion: 0,
-          sourceBinding: 'bound',
-          lastSyncedAt: null
-        }
-      })
     })
   })
 
@@ -1976,18 +2292,7 @@ function createInitialEdges() {
       sourceHandle: group.side === 'left' ? 'left' : 'right',
       targetHandle: group.side === 'left' ? 'right' : 'left',
       type: 'smoothstep',
-      animated: group.id === 'overview'
-    })
-
-    group.modules.forEach((_, index) => {
-      edges.push({
-        id: `${group.id}-${group.id}-${index}`,
-        source: group.id,
-        target: `${group.id}-${index}`,
-        sourceHandle: group.side === 'left' ? 'left' : 'right',
-        targetHandle: group.side === 'left' ? 'right' : 'left',
-        type: 'smoothstep'
-      })
+      animated: group.id === 'rules'
     })
   })
   return edges
@@ -2100,9 +2405,7 @@ function inferCatalogParentId(nodeId) {
   if (systemCatalog.some((group) => group.id === nodeId)) {
     return 'root'
   }
-
-  const group = systemCatalog.find((item) => nodeId.startsWith(`${item.id}-`))
-  return group?.id || null
+  return null
 }
 
 function inferNodeDepth(nodeId, parentId) {
@@ -2115,8 +2418,8 @@ function inferNodeDepth(nodeId, parentId) {
 function getDefaultNodeTags(nodeType) {
   const tagsByType = {
     'world-root': ['世界观根节点'],
-    system: ['系统目录'],
-    module: ['百科模块'],
+    'world-section': ['世界节点'],
+    rule: ['规则体系', '规则'],
     custom: ['自增设定'],
     note: ['画布便签']
   }
@@ -2181,8 +2484,8 @@ function createKnowledgeEntries(nodes) {
 
 function getKnowledgeCategory(nodeType) {
   const categoryMap = {
-    system: '系统目录',
-    module: '百科模块',
+    'world-section': '世界节点',
+    rule: '规则条目',
     custom: '自增条目',
     'world-root': '世界观根节点'
   }

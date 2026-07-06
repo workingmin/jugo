@@ -405,14 +405,18 @@ h1 {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 380px));
   gap: var(--gap-lg);
+  align-items: start;
+  justify-content: start;
 }
 
 .project-card {
   display: grid;
-  grid-template-rows: 132px 1fr auto;
-  min-height: 426px;
+  width: 100%;
+  max-width: 380px;
+  height: 438px;
+  grid-template-rows: 118px minmax(0, 1fr) auto;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -423,7 +427,8 @@ h1 {
 .project-preview {
   display: grid;
   gap: 10px;
-  padding: 18px;
+  min-height: 0;
+  padding: 16px;
   background:
     linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px) 0 0 / 48px 100%,
     var(--color-bg-canvas);
@@ -460,8 +465,9 @@ h1 {
 
 .project-body {
   display: grid;
-  gap: var(--gap-md);
-  padding: 18px;
+  min-height: 0;
+  gap: var(--gap-sm);
+  padding: 16px;
 }
 
 .project-title-row {
@@ -471,9 +477,13 @@ h1 {
 }
 
 .project-title-row h2 {
+  display: -webkit-box;
+  overflow: hidden;
   margin-bottom: 8px;
   font-size: var(--font-size-lg);
   line-height: var(--line-height-tight);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .project-type,
@@ -500,21 +510,31 @@ h1 {
 
 .project-health {
   flex: 0 0 auto;
+  max-width: 108px;
+  overflow: hidden;
   padding: 0 8px;
   background: color-mix(in srgb, var(--color-warning) 15%, transparent);
   color: var(--color-warning);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .project-summary {
-  min-height: 44px;
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 42px;
   margin: 0;
   color: var(--color-text-secondary);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: var(--gap-sm);
+  max-height: 56px;
+  overflow: hidden;
 }
 
 .tag-row span {
@@ -560,7 +580,7 @@ h1 {
   display: flex;
   justify-content: flex-end;
   gap: var(--gap-sm);
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
 }
@@ -890,7 +910,7 @@ h1 {
   }
 
   .project-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 380px));
   }
 }
 

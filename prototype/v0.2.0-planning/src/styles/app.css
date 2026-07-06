@@ -49,6 +49,7 @@ body,
 }
 
 .worldview-nav-primary,
+.worldview-nav-disclosure,
 .worldview-nav-groups button {
   display: inline-flex;
   align-items: center;
@@ -64,9 +65,44 @@ body,
 
 .worldview-nav-primary.is-active,
 .worldview-nav-primary:hover,
+.worldview-nav-disclosure.is-active,
+.worldview-nav-disclosure:hover,
 .worldview-nav-groups button:hover {
   background: var(--color-primary-soft);
   color: var(--color-primary);
+}
+
+.worldview-nav-disclosure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 0;
+  padding: 0 4px 0 12px;
+}
+
+.worldview-nav-link,
+.worldview-nav-toggle {
+  min-width: 0;
+  min-height: 30px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-weight: 800;
+}
+
+.worldview-nav-link {
+  justify-content: flex-start;
+  padding: 0;
+  text-align: left;
+}
+
+.worldview-nav-toggle {
+  display: inline-grid;
+  width: 30px;
+  place-items: center;
+}
+
+.worldview-nav-toggle:hover {
+  background: var(--color-bg-surface);
 }
 
 .worldview-nav-groups {
@@ -77,9 +113,20 @@ body,
   border-top: 1px solid var(--color-border);
 }
 
-.worldview-nav-groups span {
+.worldview-nav-groups.is-collapsed {
+  display: none;
+}
+
+.worldview-nav-group-icon {
   width: 20px;
   color: var(--color-text-muted);
+}
+
+.worldview-nav-group-title {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .worldview-content {
@@ -94,7 +141,7 @@ body,
 .world-map-shell {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  min-height: max(calc(100vh - var(--height-topbar)), 1840px);
+  min-height: max(calc(100vh - var(--height-topbar)), 1080px);
 }
 
 .world-map-statusbar {
@@ -130,7 +177,7 @@ body,
 
 .world-map-canvas {
   position: relative;
-  min-height: 1660px;
+  min-height: 960px;
   background:
     linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px) 0 0 / 52px 100%,
     var(--color-bg-canvas);
@@ -138,17 +185,6 @@ body,
 
 .world-map-canvas .react-flow {
   background: transparent;
-}
-
-.world-map-panel {
-  padding: 7px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  font-weight: 800;
-  box-shadow: var(--shadow-panel);
 }
 
 .world-node,
@@ -177,6 +213,108 @@ body,
 
 .world-node.is-locked {
   border-left-color: var(--color-accent);
+}
+
+.rule-node {
+  width: 248px;
+  padding: 0;
+  border-left-color: var(--color-primary);
+}
+
+.rule-node-section,
+.rule-node-editor {
+  display: grid;
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.rule-node-name-section {
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-primary-soft) 32%, var(--color-bg-surface));
+}
+
+.rule-node-content-section {
+  background: var(--color-bg-surface);
+}
+
+.rule-node-name-section strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rule-node-content-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--gap-sm);
+}
+
+.rule-content-toggle {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+.rule-content-text {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  min-height: 22px;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rule-node.is-content-expanded .rule-content-text {
+  white-space: pre-wrap;
+}
+
+.rule-node-editor {
+  gap: var(--gap-sm);
+}
+
+.node-content-input {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  padding: 6px 7px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+  background: var(--color-bg-app);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+}
+
+.rule-node-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.rule-node-editor-actions button {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.rule-node-editor-actions button:last-child {
+  background: var(--color-primary);
+  color: var(--color-bg-surface);
 }
 
 .mindmap-node-row {
